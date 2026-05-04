@@ -91,6 +91,15 @@ export const runSendWhatsappJob = async () => {
             continue
         }
 
+        // ======================
+        // DELAY PERTAMA (RANDOM 1-3 MENIT)
+        // ======================
+        if (index === 0) {
+            const delay = getRandomDelay(60000, 180000) // 1–3 menit
+            console.log(`⏳ Delay awal (random): ${Math.round(delay / 1000)} detik...`)
+            await sleep(delay)
+        }
+
         const jatuhTempo = tagihan[0]?.tanggalJatuhTempo || today
         console.log(`📲 Mengirim WA ke ${nama} (${target}) — ${tagihan.length} tagihan`) 
 
@@ -104,6 +113,10 @@ export const runSendWhatsappJob = async () => {
         sentCount++
 
         const isLastRecipient = index === recipients.length - 1
+
+        // ======================
+        // DELAY SELANJUTNYA (FIX 3 MENIT)
+        // ======================
         if (!isLastRecipient && recipients.length > 1) {
             console.log('⏳ Menunggu 3 menit sebelum pengiriman berikutnya...')
             await sleep(180000)
