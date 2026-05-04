@@ -14,7 +14,8 @@ cd "$BASE_DIR" || exit 1
 # ======================
 # PATH (MAC + UBUNTU COMPATIBLE)
 # ======================
-export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+# export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH"
 
 # ======================
 # SET LOG FILE
