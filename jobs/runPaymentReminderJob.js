@@ -44,6 +44,10 @@ const groupTagihanByPenyewa = (tagihanList = []) => {
     }, {})
 }
 
+const getRandomDelay = (minMs, maxMs) => {
+    return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs
+}
+
 export const runSendWhatsappJob = async () => {
     console.log('🚀 Memulai job reminder WhatsApp tagihan...')
 
