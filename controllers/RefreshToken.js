@@ -1,4 +1,5 @@
 import { pengguna } from "../models/PenggunaModel.js";
+import { rolePermissions } from '../config/Permissions.js';
 import jsonWebToken from 'jsonwebtoken'
 
 export const refreshToken = (req, res) => {
@@ -26,6 +27,7 @@ export const refreshToken = (req, res) => {
             return
         }
         
+        const permissions = rolePermissions[results[0].peran] || {}
         const payloadObject = {
             id: results[0].id,
             nama: results[0].nama,
@@ -33,8 +35,6 @@ export const refreshToken = (req, res) => {
             peran: results[0].peran
         }
         
-        // console.log(payloadObject)
-
         jsonWebToken.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, jwtRes) => {
             if (err) return res.sendStatus(403)
             const accessToken = jsonWebToken.sign(payloadObject, process.env.ACCESS_TOKEN_SECRET, {expiresIn: process.env.ACCESS_TOKEN_EXPIRESIN})
@@ -45,6 +45,7 @@ export const refreshToken = (req, res) => {
                 data: {
                     name: results[0].nama,
                     role: results[0].peran,
+                    permissions: permissions,
                     access_token: accessToken
                 }
             })
