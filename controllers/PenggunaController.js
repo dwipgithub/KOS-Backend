@@ -2,7 +2,7 @@ import { pengguna } from '../models/PenggunaModel.js'
 import bcrypt from 'bcrypt'
 import jsonWebToken from 'jsonwebtoken'
 import Joi from 'joi'
-import { rolePermissions } from '../config/permissions.js'
+import { rolePermissions } from '../config/Permissions.js'
 
 // ======================
 // LOGIN
