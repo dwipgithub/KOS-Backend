@@ -12,7 +12,7 @@ export const refreshToken = (req, res) => {
         return
     }
     pengguna.findAll({
-        attributes: ['id', 'nama', 'id_peran', 'email'],
+        attributes: ['id', 'nama', 'peran', 'email'],
         where: {
             refresh_token: refreshToken
         }
@@ -30,7 +30,7 @@ export const refreshToken = (req, res) => {
             id: results[0].id,
             nama: results[0].nama,
             email: results[0].email,
-            id_peran: results[0].id_peran
+            peran: results[0].peran
         }
         
         // console.log(payloadObject)
@@ -44,6 +44,7 @@ export const refreshToken = (req, res) => {
                 message: "access token created",
                 data: {
                     name: results[0].nama,
+                    role: results[0].peran,
                     access_token: accessToken
                 }
             })

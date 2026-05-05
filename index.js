@@ -30,7 +30,7 @@ app.use(cors({
 
 app.use(cookieParser())
 app.use(express.json())
-app.use(router)
+app.use('/api/v1', router)
 
 app.listen(5001, () => {
     console.log("server running at port 5001")

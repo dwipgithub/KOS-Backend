@@ -1,3 +1,4 @@
+import { getPemilik } from '../models/Pemilik.js'
 import { get as getArusKas } from '../models/LaporanArusKas.js'
 import { get as getLabaRugi } from '../models/LaporanLabaRugi.js'
 import { get as getBukuBesar } from '../models/LaporanBukuBesar.js'
@@ -20,7 +21,7 @@ dotenv.config({
 //     path: '/Users/dp/Documents/Project/Kos/Backend/.env'
 // })
 
-const RECEIVER_EMAIL = 'kotakelektronik@gmail.com'
+// const RECEIVER_EMAIL = 'kotakelektronik@gmail.com'
 
 const formatDate = (date) => {
     const year = date.getFullYear()
@@ -62,6 +63,21 @@ export const runFinancialReportJob = async () => {
     console.log('🚀 Mulai job Laporan Keuangan...')
 
     try {
+        // ======================
+        // AMBIL EMAIL PEMILIK
+        // ======================
+        const pemilikData = await getPemilik()
+        const pemilik = Array.isArray(pemilikData) ? pemilikData[0] : pemilikData
+
+        if (!pemilik || !pemilik.email) {
+            console.log('❌ Email pemilik tidak ditemukan')
+            return
+        }
+
+        const RECEIVER_EMAIL = pemilik.email
+
+        console.log(`📧 Email tujuan: ${RECEIVER_EMAIL}`)
+
         const propertiResult = await getProperti({ query: { limit: 999999 } })
         const propertyList = propertiResult.data || []
 

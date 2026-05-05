@@ -1,139 +1,189 @@
 import express from 'express'
 
+// ======================
+// AUTH CONTROLLER
+// ======================
 import { login, logout } from '../controllers/PenggunaController.js'
 import { refreshToken } from '../controllers/RefreshToken.js'
+
+// ======================
+// MIDDLEWARE
+// ======================
 import { verifyToken } from '../middleware/VerifyToken.js'
+import { authorize } from '../middleware/Authorize.js'
 import { decodeRouteIdParam } from '../middleware/DecodeRouteIdParam.js'
 import { decodeBodyFields } from '../middleware/DecodeBody.js'
-import { getProperti, updateProperti, showProperti, createProperti } from '../controllers/PropertiController.js'
-import { getKamar, showKamar, createKamar, updateKamar } from '../controllers/KamarController.js'
-import { getPenyewa, showPenyewa, createPenyewa, updatePenyewa } from '../controllers/PenyewaController.js'
-import { penyewaDokumenUpload } from '../middleware/uploadPenyewaDokumen.js'
-import { getSewa, showSewa, createSewa } from '../controllers/SewaController.js'
-import { getTagihan, showTagihan, createTagihan } from '../controllers/TagihanController.js'
-import { createPembayaran, getPembayaran, showPembayaran } from '../controllers/PembayaranController.js'
-import { pembayaranBuktiUpload } from '../middleware/uploadPembayaranBukti.js'
+
+// ======================
+// CONTROLLERS
+// ======================
+import * as Properti from '../controllers/PropertiController.js'
+import * as Kamar from '../controllers/KamarController.js'
+import * as Penyewa from '../controllers/PenyewaController.js'
+import * as Sewa from '../controllers/SewaController.js'
+import * as Tagihan from '../controllers/TagihanController.js'
+import * as Pembayaran from '../controllers/PembayaranController.js'
+import * as Pengeluaran from '../controllers/PengeluaranController.js'
+
+// laporan
+import * as LaporanArusKas from '../controllers/LaporanArusKasController.js'
+import * as LaporanLabaRugi from '../controllers/LaporanLabaRugiController.js'
+import * as LaporanBukuBesar from '../controllers/LaporanBukuBesarController.js'
+import * as LaporanPiutang from '../controllers/LaporanPiutangController.js'
+import * as LaporanTagihan from '../controllers/LaporanTagihanController.js'
+
+// master data
 import { getProvinsi } from '../controllers/ProvinsiController.js'
 import { getKabKota, showKabKota } from '../controllers/KabKotaController.js'
 import { getKecamatan, showKecamatan } from '../controllers/KecamatanController.js'
 import { getKelurahan, showKelurahan } from '../controllers/KelurahanController.js'
-import { getStatusKamar } from '../controllers/StatusKamarController.js'
-import { getPengenal } from '../controllers/Pengenal.js'
-import { getStatusPernikahan } from '../controllers/StatusPernikahanController.js'
 import { getJenisKelamin } from '../controllers/JenisKelaminController.js'
-import { servePrivateFile } from '../controllers/SecureFileController.js'
+import { getStatusPernikahan } from '../controllers/StatusPernikahanController.js'
+import { getPengenal } from '../controllers/Pengenal.js'
+import { getStatusKamar } from '../controllers/StatusKamarController.js'
 import { getProfesi, showProfesi, createProfesi } from '../controllers/ProfesiController.js'
 import { getInstitusi, showInstitusi, createInstitusi } from '../controllers/InstitusiController.js'
-import { createKeluar } from '../controllers/KeluarController.js'
-import { createPengeluaran, getPengeluaran, showPengeluaran } from '../controllers/PengeluaranController.js'
 import { getKategoriPengeluaran } from '../controllers/KategoriPengeluaranController.js'
+import { createKeluar } from '../controllers/KeluarController.js'
+
+// file private
+import { servePrivateFile } from '../controllers/SecureFileController.js'
+
+// upload
+import { penyewaDokumenUpload } from '../middleware/uploadPenyewaDokumen.js'
+import { pembayaranBuktiUpload } from '../middleware/uploadPembayaranBukti.js'
 import { pengeluaranBuktiUpload } from '../middleware/uploadPengeluaranBukti.js'
-import { getLaporanArusKas, exportPdfArusKas } from '../controllers/LaporanArusKasController.js'
-import { getLaporanLabaRugi, exportPdfLabaRugi } from '../controllers/LaporanLabaRugiController.js'
-import { getLaporanBukuBesar, exportPdfBukuBesar } from '../controllers/LaporanBukuBesarController.js'
-import { getLaporanTagihan } from '../controllers/LaporanTagihanController.js'
-import { getLaporanPiutang, exportPdfPiutang } from '../controllers/LaporanPiutangController.js'
 
 const router = express.Router()
 
-// Authentikasi
-router.post('/api/v1/login', login)
-router.delete('/api/v1/logout', logout)
-router.get('/api/v1/token', refreshToken)
+// ======================
+// AUTH (PUBLIC)
+// ======================
+router.post('/login', login)
+router.delete('/logout', logout)
+router.get('/token', refreshToken)
 
-// File privat (dokumen penyewa, bukti pembayaran) — wajib JWT, bukan static publik
-router.get('/api/v1/files/:folder/:filename', verifyToken, servePrivateFile)
+// ======================
+// WAJIB LOGIN SETELAH INI
+// ======================
+router.use(verifyToken)
 
-// Provinsi
-router.get('/api/v1/provinsi', verifyToken, getProvinsi)
+// ======================
+// ROLE HELPER
+// ======================
+const allowAll = authorize(['OWNER', 'ADMIN', 'OPERATOR'])
+const allowReport = authorize(['OWNER', 'ADMIN'])
 
-// KabKota
-router.get('/api/v1/kabkota', verifyToken, getKabKota)
-router.get('/api/v1/kabkota/:id', verifyToken, showKabKota)
+// ======================
+// FILE PRIVATE
+// ======================
+router.get('/files/:folder/:filename', servePrivateFile)
 
-// Kecamatan
-router.get('/api/v1/kecamatan', verifyToken, getKecamatan)
-router.get('/api/v1/kecamatan/:id', verifyToken, showKecamatan)
+// ======================
+// MASTER DATA
+// ======================
+router.get('/provinsi', getProvinsi)
 
-// Kelurahan
-router.get('/api/v1/kelurahan', verifyToken, getKelurahan)
-router.get('/api/v1/kelurahan/:id', verifyToken, showKelurahan)
+router.get('/kabkota', getKabKota)
+router.get('/kabkota/:id', showKabKota)
 
-// Jenis Kelamin
-router.get('/api/v1/jenis-kelamin', verifyToken, getJenisKelamin)
+router.get('/kecamatan', getKecamatan)
+router.get('/kecamatan/:id', showKecamatan)
 
-// Profesi
-router.get('/api/v1/profesi', verifyToken, getProfesi)
-router.get('/api/v1/profesi/:id', verifyToken, showProfesi)
-router.post('/api/v1/profesi', verifyToken, createProfesi)
+router.get('/kelurahan', getKelurahan)
+router.get('/kelurahan/:id', showKelurahan)
 
-// Institusi
-router.get('/api/v1/profesi', verifyToken, getInstitusi)
-router.get('/api/v1/profesi/:id', verifyToken, showInstitusi)
-router.post('/api/v1/profesi', verifyToken, createInstitusi)
+router.get('/jenis-kelamin', getJenisKelamin)
+router.get('/status-pernikahan', getStatusPernikahan)
+router.get('/pengenal', getPengenal)
 
-// Status Pernikahan
-router.get('/api/v1/status-pernikahan', verifyToken, getStatusPernikahan)
+router.get('/status-kamar', allowAll, getStatusKamar)
 
-// Pengenal
-router.get('/api/v1/pengenal', verifyToken, getPengenal)
+// ======================
+// PROFESI & INSTITUSI
+// ======================
+router.get('/profesi', getProfesi)
+router.get('/profesi/:id', showProfesi)
+router.post('/profesi', allowAll, createProfesi)
 
-// Properti
-router.get('/api/v1/properti', verifyToken, getProperti)
-router.get('/api/v1/properti/:id', verifyToken, decodeRouteIdParam('id'), showProperti)
-router.post('/api/v1/properti', verifyToken, createProperti)
-router.patch('/api/v1/properti/:id', verifyToken, decodeRouteIdParam('id'), updateProperti)
+router.get('/institusi', getInstitusi)
+router.get('/institusi/:id', showInstitusi)
+router.post('/institusi', allowAll, createInstitusi)
 
-// Kamar
-router.get('/api/v1/kamar', verifyToken, getKamar)
-router.get('/api/v1/kamar/:id', verifyToken, decodeRouteIdParam('id'), showKamar)
-router.post('/api/v1/kamar', verifyToken, createKamar)
-router.patch('/api/v1/kamar/:id', verifyToken, decodeRouteIdParam('id'), updateKamar)
+// ======================
+// PROPERTI
+// ======================
+router.get('/properti', allowAll, Properti.getProperti)
+router.get('/properti/:id', allowAll, decodeRouteIdParam('id'), Properti.showProperti)
+router.post('/properti', allowAll, Properti.createProperti)
+router.patch('/properti/:id', allowAll, decodeRouteIdParam('id'), Properti.updateProperti)
 
-// Status Kamar
-router.get('/api/v1/status-kamar', verifyToken, getStatusKamar)
+// ======================
+// KAMAR
+// ======================
+router.get('/kamar', allowAll, Kamar.getKamar)
+router.get('/kamar/:id', allowAll, decodeRouteIdParam('id'), Kamar.showKamar)
+router.post('/kamar', allowAll, Kamar.createKamar)
+router.patch('/kamar/:id', allowAll, decodeRouteIdParam('id'), Kamar.updateKamar)
 
-// Penyewa
-router.get('/api/v1/penyewa', verifyToken, getPenyewa)
-router.get('/api/v1/penyewa/:id', verifyToken, decodeRouteIdParam('id'), showPenyewa)
-router.post('/api/v1/penyewa', verifyToken, penyewaDokumenUpload({ requireFile: true }), createPenyewa)
-router.patch('/api/v1/penyewa/:id', verifyToken, decodeRouteIdParam('id'), penyewaDokumenUpload(), updatePenyewa)
+// ======================
+// PENYEWA
+// ======================
+router.get('/penyewa', allowAll, Penyewa.getPenyewa)
+router.get('/penyewa/:id', allowAll, decodeRouteIdParam('id'), Penyewa.showPenyewa)
+router.post('/penyewa', allowAll, penyewaDokumenUpload({ requireFile: true }), Penyewa.createPenyewa)
+router.patch('/penyewa/:id', allowAll, decodeRouteIdParam('id'), penyewaDokumenUpload(), Penyewa.updatePenyewa)
 
-// Sewa
-router.get('/api/v1/sewa', verifyToken, getSewa)
-router.get('/api/v1/sewa/:id', verifyToken, showSewa)
-router.post('/api/v1/sewa', verifyToken, decodeBodyFields(["idKamar"]), createSewa)
+// ======================
+// SEWA
+// ======================
+router.get('/sewa', allowAll, Sewa.getSewa)
+router.get('/sewa/:id', allowAll, Sewa.showSewa)
+router.post('/sewa', allowAll, decodeBodyFields(["idKamar"]), Sewa.createSewa)
 
-// Tagihan
-router.get('/api/v1/tagihan', verifyToken, getTagihan)
-router.get('/api/v1/tagihan/:id', verifyToken, showTagihan)
-router.post('/api/v1/tagihan', verifyToken, createTagihan)
+// ======================
+// TAGIHAN
+// ======================
+router.get('/tagihan', allowAll, Tagihan.getTagihan)
+router.get('/tagihan/:id', allowAll, Tagihan.showTagihan)
+router.post('/tagihan', allowAll, Tagihan.createTagihan)
 
-// Pembayaran
-router.get('/api/v1/pembayaran', verifyToken, getPembayaran)
-router.get('/api/v1/pembayaran/:id', verifyToken, showPembayaran)
-router.post('/api/v1/pembayaran', verifyToken, pembayaranBuktiUpload, createPembayaran)
+// ======================
+// PEMBAYARAN
+// ======================
+router.get('/pembayaran', allowAll, Pembayaran.getPembayaran)
+router.get('/pembayaran/:id', allowAll, Pembayaran.showPembayaran)
+router.post('/pembayaran', allowAll, pembayaranBuktiUpload, Pembayaran.createPembayaran)
 
-// Keluar
-router.post('/api/v1/keluar', verifyToken, createKeluar)
+// ======================
+// KELUAR
+// ======================
+router.post('/keluar', allowAll, createKeluar)
 
-// Kategori Pengeluaran
-router.get('/api/v1/kategori-pengeluaran', verifyToken, getKategoriPengeluaran)
+// ======================
+// PENGELUARAN
+// ======================
+router.get('/kategori-pengeluaran', allowAll, getKategoriPengeluaran)
 
-// Pengeluaran
-router.get('/api/v1/pengeluaran', verifyToken, getPengeluaran)
-router.get('/api/v1/pengeluaran/:id', verifyToken, showPengeluaran)
-router.post('/api/v1/pengeluaran', verifyToken, pengeluaranBuktiUpload, createPengeluaran)
+router.get('/pengeluaran', allowAll, Pengeluaran.getPengeluaran)
+router.get('/pengeluaran/:id', allowAll, Pengeluaran.showPengeluaran)
+router.post('/pengeluaran', allowAll, pengeluaranBuktiUpload, Pengeluaran.createPengeluaran)
 
-// Laporan
-router.get('/api/v1/laporan/arus-kas/export/pdf', verifyToken, exportPdfArusKas)
-router.get('/api/v1/laporan/arus-kas', verifyToken, getLaporanArusKas)
-router.get('/api/v1/laporan/laba-rugi/export/pdf', verifyToken, exportPdfLabaRugi)
-router.get('/api/v1/laporan/laba-rugi', verifyToken, getLaporanLabaRugi)
-router.get('/api/v1/laporan/buku-besar/export/pdf', verifyToken, exportPdfBukuBesar)
-router.get('/api/v1/laporan/buku-besar', verifyToken, getLaporanBukuBesar)
-router.get('/api/v1/laporan/tagihan', verifyToken, getLaporanTagihan)
-router.get('/api/v1/laporan/piutang', verifyToken, getLaporanPiutang)
-router.get('/api/v1/laporan/piutang/export/pdf', verifyToken, exportPdfPiutang)
+// ======================
+// LAPORAN (RESTRICTED)
+// ======================
+router.get('/laporan/arus-kas', allowReport, LaporanArusKas.getLaporanArusKas)
+router.get('/laporan/arus-kas/export/pdf', allowReport, LaporanArusKas.exportPdfArusKas)
+
+router.get('/laporan/laba-rugi', allowReport, LaporanLabaRugi.getLaporanLabaRugi)
+router.get('/laporan/laba-rugi/export/pdf', allowReport, LaporanLabaRugi.exportPdfLabaRugi)
+
+router.get('/laporan/buku-besar', allowReport, LaporanBukuBesar.getLaporanBukuBesar)
+router.get('/laporan/buku-besar/export/pdf', allowReport, LaporanBukuBesar.exportPdfBukuBesar)
+
+router.get('/laporan/piutang', allowReport, LaporanPiutang.getLaporanPiutang)
+router.get('/laporan/piutang/export/pdf', allowReport, LaporanPiutang.exportPdfPiutang)
+
+router.get('/laporan/tagihan', allowReport, LaporanTagihan.getLaporanTagihan)
 
 export default router

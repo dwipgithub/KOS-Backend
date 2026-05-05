@@ -18,8 +18,8 @@ export const pengguna = database.define('pengguna', {
     refresh_token: {
         type: DataTypes.TEXT
     },
-    id_peran: {
-        type: DataTypes.INTEGER,
+    peran: {
+        type: DataTypes.ENUM('OWNER', 'ADMIN', 'OPERATOR'),
         allowNull: false
     }
 }, {

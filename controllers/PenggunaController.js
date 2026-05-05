@@ -2,207 +2,214 @@ import { pengguna } from '../models/PenggunaModel.js'
 import bcrypt from 'bcrypt'
 import jsonWebToken from 'jsonwebtoken'
 import Joi from 'joi'
-import { Sequelize } from "sequelize";
-const Op = Sequelize.Op
+import { rolePermissions } from '../config/permissions.js'
 
+// ======================
+// LOGIN
+// ======================
 export const login = async (req, res) => {
     const schema = Joi.object({
-        email: Joi.string()
-            .required(),
-        password: Joi.string()
-            .required(),
+        email: Joi.string().required(),
+        password: Joi.string().required(),
     })
 
-    const { error, value } =  schema.validate(req.body)
-    
+    const { error } = schema.validate(req.body)
+
     if (error) {
-        res.status(404).send({
+        return res.status(400).send({
             status: false,
             message: error.details[0].message
         })
-        return
-    }
-
-    pengguna.findAll({
-        attributes: ['id','nama','email','password','id_peran'],
-        where: {
-            email: req.body.email
-        }
-    })
-    .then((results) => {
-        if (!results.length) {
-            res.status(404).send({
-                status: false,
-                message: 'email not found'
-            })
-            return
-        }
-        bcrypt.compare(req.body.password, results[0].password, (error, compareResult) => {
-            if (compareResult == false) {
-                res.status(404).send({
-                    status: false,
-                    message: 'wrong password'
-                })
-                return
-            }
-
-            const payloadObject = {
-                id: results[0].id,
-                nama: results[0].nama,
-                email: results[0].email,
-                id_peran: results[0].id_peran
-            }
-
-            const payloadObjectRefreshToken = {
-                id: results[0].id
-            }
-
-            const accessToken = jsonWebToken.sign(payloadObject, process.env.ACCESS_TOKEN_SECRET, {expiresIn: process.env.ACCESS_TOKEN_EXPIRESIN})
-            jsonWebToken.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, result) => {
-                const refreshToken = jsonWebToken.sign(payloadObjectRefreshToken, process.env.REFRESH_TOKEN_SECRET, {expiresIn: process.env.REFRESH_TOKEN_EXPIRESIN})
-                pengguna.update({refresh_token: refreshToken},{
-                    where: {
-                        id: results[0].id
-                    }
-                })
-                .then(() => {
-                    res.cookie('refreshToken', refreshToken, {
-                        httpOnly: true,
-                        sameSite: 'Strict',
-                        secure: false, 
-                        maxAge: 6 * 60 * 60 * 1000
-                    })
-
-                    // const csrfToken = crypto.randomUUID()
-
-                    // res.cookie('XSRF-TOKEN', csrfToken, {
-                    //     httpOnly: true,
-                    //     sameSite: 'Strict', // atau 'Lax' tergantung kebutuhan
-                    //     secure: true
-                    // });
-
-                    res.status(201).send({
-                        status: true,
-                        message: "access token created",
-                        data: {
-                            name: results[0].nama,
-                            access_token: accessToken
-                        }
-                    })
-                })
-                .catch((err) => {
-                    res.status(404).send({
-                        status: false,
-                        message: err
-                    })
-                    return
-                })
-            })
-        })
-    })
-    .catch((err) => {
-        res.status(404).send({
-            status: false,
-            message: err
-        })
-        return
-    })
-}
-
-export const logout = (req, res) => {
-    const refreshToken = req.cookies.refreshToken
-    if(!refreshToken) {
-        res.status(200).send({
-            status: false,
-            message: 'Unauthorized'
-        })
-        return
-    }
-
-    pengguna.findAll({
-        where: {
-            refresh_token: refreshToken
-        }
-    })
-    .then((results) => {
-        pengguna.update({refresh_token: null},{
-            where: {
-                id: results[0].id
-            }
-        })
-        .then((resultsUpdate) => {
-            res.clearCookie('refreshToken')
-            res.status(200).send({
-                status: true,
-                message: resultsUpdate
-            })
-        })
-    })
-    .catch((err) => {
-        res.status(404).send({
-            status: false,
-            message: err
-        })
-        return
-    })
-
-}
-
-export const changePassword = async (req, res) => {
-    const schema = Joi.object({
-        passwordLama: Joi.string()
-            .required(),
-        passwordBaru: Joi.string()
-            .required(),
-        passwordBaruConfirmation: Joi.string()
-            .required().valid(Joi.ref('passwordBaru'))
-    })
-
-    const { error, value } =  schema.validate(req.body)
-    
-    if (error) {
-        res.status(404).send({
-            status: false,
-            message: error.details[0].message
-        })
-        return
     }
 
     try {
-        const passwordLama = await pengguna.findOne({
-            attributes: ['password'],
-            where: {
-                id: req.params.id
+        const user = await pengguna.findOne({
+            attributes: ['id', 'nama', 'email', 'password', 'peran'],
+            where: { email: req.body.email }
+        })
+
+        if (!user) {
+            return res.status(404).send({
+                status: false,
+                message: 'email not found'
+            })
+        }
+
+        const match = await bcrypt.compare(req.body.password, user.password)
+
+        if (!match) {
+            return res.status(401).send({
+                status: false,
+                message: 'wrong password'
+            })
+        }
+
+        // ======================
+        // PAYLOAD JWT
+        // ======================
+        const payload = {
+            id: user.id,
+            nama: user.nama,
+            email: user.email,
+            peran: user.peran
+        }
+
+        const accessToken = jsonWebToken.sign(
+            payload,
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: process.env.ACCESS_TOKEN_EXPIRESIN }
+        )
+
+        const refreshToken = jsonWebToken.sign(
+            { id: user.id },
+            process.env.REFRESH_TOKEN_SECRET,
+            { expiresIn: process.env.REFRESH_TOKEN_EXPIRESIN }
+        )
+
+        // ======================
+        // SIMPAN REFRESH TOKEN
+        // ======================
+        await pengguna.update(
+            { refresh_token: refreshToken },
+            { where: { id: user.id } }
+        )
+
+        // ======================
+        // COOKIE
+        // ======================
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            sameSite: 'Strict',
+            secure: false,
+            maxAge: 6 * 60 * 60 * 1000
+        })
+
+        // ======================
+        // PERMISSIONS
+        // ======================
+        const permissions = rolePermissions[user.peran] || {}
+
+        // ======================
+        // RESPONSE
+        // ======================
+        return res.status(200).send({
+            status: true,
+            message: "access token created",
+            data: {
+                name: user.nama,
+                role: user.peran,
+                permissions: permissions,
+                access_token: accessToken
             }
         })
 
-        const compareResult = await bcrypt.compare(req.body.passwordLama, passwordLama.dataValues.password)
-        if (!compareResult) {
-            res.status(404).json({
+    } catch (err) {
+        return res.status(500).send({
+            status: false,
+            message: err.message
+        })
+    }
+}
+
+
+// ======================
+// LOGOUT
+// ======================
+export const logout = async (req, res) => {
+    try {
+        const refreshToken = req.cookies.refreshToken
+
+        if (!refreshToken) {
+            return res.status(200).send({
+                status: false,
+                message: 'Unauthorized'
+            })
+        }
+
+        const user = await pengguna.findOne({
+            where: { refresh_token: refreshToken }
+        })
+
+        if (!user) {
+            return res.status(200).send({
+                status: false,
+                message: 'User not found'
+            })
+        }
+
+        await pengguna.update(
+            { refresh_token: null },
+            { where: { id: user.id } }
+        )
+
+        res.clearCookie('refreshToken')
+
+        return res.status(200).send({
+            status: true,
+            message: 'Logout berhasil'
+        })
+
+    } catch (err) {
+        return res.status(500).send({
+            status: false,
+            message: err.message
+        })
+    }
+}
+
+
+// ======================
+// CHANGE PASSWORD
+// ======================
+export const changePassword = async (req, res) => {
+    const schema = Joi.object({
+        passwordLama: Joi.string().required(),
+        passwordBaru: Joi.string().required(),
+        passwordBaruConfirmation: Joi.string()
+            .valid(Joi.ref('passwordBaru'))
+            .required()
+    })
+
+    const { error } = schema.validate(req.body)
+
+    if (error) {
+        return res.status(400).send({
+            status: false,
+            message: error.details[0].message
+        })
+    }
+
+    try {
+        const user = await pengguna.findOne({
+            attributes: ['password'],
+            where: { id: req.params.id }
+        })
+
+        const match = await bcrypt.compare(req.body.passwordLama, user.password)
+
+        if (!match) {
+            return res.status(400).send({
                 status: false,
                 message: 'password lama tidak sesuai'
             })
-            return
         }
 
-        const saltRound = 10
-        const plainPassword = req.body.passwordBaru
-        const password = await bcrypt.hash(plainPassword, saltRound)
-        const update = await pengguna.update(
-            {
-                password: password
-            },
-            {
-                where: {
-                    id: req.params.id
-                }
-            }
+        const hashedPassword = await bcrypt.hash(req.body.passwordBaru, 10)
+
+        await pengguna.update(
+            { password: hashedPassword },
+            { where: { id: req.params.id } }
         )
-        res.status(200).json({
+
+        return res.status(200).send({
             status: true,
-            message: update
+            message: 'Password berhasil diubah'
         })
-    } catch (error) {
-        console.log(error.message);
+
+    } catch (err) {
+        return res.status(500).send({
+            status: false,
+            message: err.message
+        })
     }
 }
