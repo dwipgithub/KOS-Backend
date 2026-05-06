@@ -1,8 +1,80 @@
-import { pengguna } from '../models/PenggunaModel.js'
+import { pengguna } from '../models/Pengguna.js'
 import bcrypt from 'bcrypt'
 import jsonWebToken from 'jsonwebtoken'
 import Joi from 'joi'
 import { rolePermissions } from '../config/Permissions.js'
+
+// ======================
+// CREATE PENGGUNA
+// ======================
+export const createPengguna = async (req, res) => {
+    const schema = Joi.object({
+        nama: Joi.string().required(),
+        email: Joi.string().email().required(),
+        password: Joi.string().min(6).required(),
+        peran: Joi.string().valid('OWNER', 'ADMIN', 'OPERATOR').required()
+    })
+
+    const { error } = schema.validate(req.body)
+
+    if (error) {
+        return res.status(400).send({
+            status: false,
+            message: error.details[0].message
+        })
+    }
+
+    try {
+        // ======================
+        // CEK EMAIL DUPLIKAT
+        // ======================
+        const existingUser = await pengguna.findOne({
+            where: { email: req.body.email }
+        })
+
+        if (existingUser) {
+            return res.status(400).send({
+                status: false,
+                message: 'Email sudah digunakan'
+            })
+        }
+
+        // ======================
+        // HASH PASSWORD
+        // ======================
+        const hashedPassword = await bcrypt.hash(req.body.password, 10)
+
+        // ======================
+        // CREATE USER
+        // ======================
+        const newUser = await pengguna.create({
+            nama: req.body.nama,
+            email: req.body.email,
+            password: hashedPassword,
+            peran: req.body.peran
+        })
+
+        // ======================
+        // RESPONSE
+        // ======================
+        return res.status(201).send({
+            status: true,
+            message: 'Pengguna berhasil dibuat',
+            data: {
+                id: newUser.id,
+                nama: newUser.nama,
+                email: newUser.email,
+                peran: newUser.peran
+            }
+        })
+
+    } catch (err) {
+        return res.status(500).send({
+            status: false,
+            message: err.message
+        })
+    }
+}
 
 // ======================
 // LOGIN
@@ -164,7 +236,7 @@ export const logout = async (req, res) => {
 export const changePassword = async (req, res) => {
     const schema = Joi.object({
         passwordLama: Joi.string().required(),
-        passwordBaru: Joi.string().required(),
+        passwordBaru: Joi.string().min(6).required(),
         passwordBaruConfirmation: Joi.string()
             .valid(Joi.ref('passwordBaru'))
             .required()
@@ -180,25 +252,37 @@ export const changePassword = async (req, res) => {
     }
 
     try {
+        // 🔥 ambil dari token, bukan params
+        const userId = req.user.id
+
         const user = await pengguna.findOne({
             attributes: ['password'],
-            where: { id: req.params.id }
+            where: { id: userId }
         })
 
+        if (!user) {
+            return res.status(404).send({
+                status: false,
+                message: 'User tidak ditemukan'
+            })
+        }
+
+        // cek password lama
         const match = await bcrypt.compare(req.body.passwordLama, user.password)
 
         if (!match) {
             return res.status(400).send({
                 status: false,
-                message: 'password lama tidak sesuai'
+                message: 'Password lama tidak sesuai'
             })
         }
 
+        // hash password baru
         const hashedPassword = await bcrypt.hash(req.body.passwordBaru, 10)
 
         await pengguna.update(
             { password: hashedPassword },
-            { where: { id: req.params.id } }
+            { where: { id: userId } }
         )
 
         return res.status(200).send({

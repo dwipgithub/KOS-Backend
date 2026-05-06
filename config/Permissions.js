@@ -4,6 +4,8 @@ export const rolePermissions = {
         kamar: true,
         penyewa: true,
         pengeluaran: true,
+        change_password: true,
+        tambah_pengguna: true,
         laporan: {
             arus_kas: true,
             laba_rugi: true,
@@ -16,6 +18,8 @@ export const rolePermissions = {
         kamar: true,
         penyewa: true,
         pengeluaran: true,
+        change_password: true,
+        tambah_pengguna: true,
         laporan: {
             arus_kas: true,
             laba_rugi: true,
@@ -28,6 +32,8 @@ export const rolePermissions = {
         kamar: true,
         penyewa: true,
         pengeluaran: true,
+        change_password: true,
+        tambah_pengguna: true,
         laporan: {
             arus_kas: false,
             laba_rugi: false,

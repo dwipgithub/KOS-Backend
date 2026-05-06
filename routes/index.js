@@ -3,7 +3,7 @@ import express from 'express'
 // ======================
 // AUTH CONTROLLER
 // ======================
-import { login, logout } from '../controllers/PenggunaController.js'
+import { createPengguna, changePassword, login, logout } from '../controllers/PenggunaController.js'
 import { refreshToken } from '../controllers/RefreshToken.js'
 
 // ======================
@@ -98,6 +98,12 @@ router.get('/status-pernikahan', getStatusPernikahan)
 router.get('/pengenal', getPengenal)
 
 router.get('/status-kamar', allowAll, getStatusKamar)
+
+// ======================
+// PENGGUNA
+// ======================
+router.post('/pengguna', allowAll, createPengguna)
+router.patch('/pengguna/change-password', allowAll, changePassword)
 
 // ======================
 // PROFESI & INSTITUSI

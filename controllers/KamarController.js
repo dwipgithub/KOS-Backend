@@ -42,7 +42,6 @@ export const getKamar = async (req, res) => {
 
 export const showKamar = async (req, res) => {
     try {
-        console.log(req.params.id)
         const result = await show(req.params.id)
 
         if (!result) {

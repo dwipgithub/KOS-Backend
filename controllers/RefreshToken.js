@@ -1,10 +1,9 @@
-import { pengguna } from "../models/PenggunaModel.js";
+import { pengguna } from "../models/Pengguna.js";
 import { rolePermissions } from '../config/Permissions.js';
 import jsonWebToken from 'jsonwebtoken'
 
 export const refreshToken = (req, res) => {
     const refreshToken = req.cookies.refreshToken
-    console.log(refreshToken)
     if(!refreshToken) {
         res.status(403).json({
             status: false,

@@ -55,8 +55,6 @@ export const get = async (req) => {
             replacements: [...replacements, limit, offset]
         })
 
-        console.log("Provinsi List:", rows)
-
          // ======================
         // QUERY COUNT
         // ======================
