@@ -18,6 +18,12 @@ const formatDateYMD = (date) => {
     return `${year}-${month}-${day}`
 }
 
+const addDays = (date, days) => {
+    const result = new Date(date)
+    result.setDate(result.getDate() + days)
+    return result
+}
+
 const normalizePhone = (phone) => {
     if (!phone) return null
     const digits = String(phone).replace(/\D/g, '')
@@ -48,10 +54,32 @@ const getRandomDelay = (minMs, maxMs) => {
     return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs
 }
 
+const getReminderCategory = (jatuhTempo) => {
+    const today = new Date()
+    const jt = new Date(jatuhTempo)
+
+    today.setHours(0, 0, 0, 0)
+    jt.setHours(0, 0, 0, 0)
+
+    const diff = (jt - today) / (1000 * 60 * 60 * 24)
+
+    if (diff > 0) return 'BEFORE'
+    if (diff === 0) return 'TODAY'
+    return 'AFTER'
+}
+
 export const runSendWhatsappJob = async () => {
     console.log('🚀 Memulai job reminder WhatsApp tagihan...')
 
-    const today = formatDateYMD(new Date())
+    const todayDate = new Date()
+
+    const startDate = formatDateYMD(addDays(todayDate, -3))
+    const endDate = formatDateYMD(addDays(todayDate, 3))
+
+    // const today = formatDateYMD(todayDate)
+
+    console.log(`📅 Filter tanggal: ${startDate} s/d ${endDate}`)
+
     const request = {
         query: {
             idStatusTagihan: 'UNPAID',
@@ -64,20 +92,39 @@ export const runSendWhatsappJob = async () => {
 
     console.log(`🧾 Tagihan UNPAID ditemukan: ${invoices.length}`)
 
-    const dueToday = invoices.filter((item) => item.tanggalJatuhTempo === today)
-    console.log(`📅 Tagihan jatuh tempo hari ini (${today}): ${dueToday.length}`)
+    // const dueToday = invoices.filter((item) => item.tanggalJatuhTempo === today)
+    // console.log(`📅 Tagihan jatuh tempo hari ini (${today}): ${dueToday.length}`)
 
-    if (dueToday.length === 0) {
+    const dueRange = invoices.filter((item) => {
+        const tgl = item.tanggalJatuhTempo
+        return tgl >= startDate && tgl <= endDate
+    })
+
+    console.log(`📅 Tagihan dalam range: ${dueRange.length}`)
+
+
+    // if (dueToday.length === 0) {
+    //     return {
+    //         totalTagihan: invoices.length,
+    //         dueToday: 0,
+    //         recipients: 0,
+    //         sent: 0,
+    //         skipped: 0
+    //     }
+    // }
+
+    if (dueRange.length === 0) {
         return {
             totalTagihan: invoices.length,
-            dueToday: 0,
+            dueRange: 0,
             recipients: 0,
             sent: 0,
             skipped: 0
         }
     }
 
-    const grouped = groupTagihanByPenyewa(dueToday)
+    // const grouped = groupTagihanByPenyewa(dueToday)
+    const grouped = groupTagihanByPenyewa(dueRange)
     const recipients = Object.values(grouped)
 
     let sentCount = 0
@@ -107,13 +154,16 @@ export const runSendWhatsappJob = async () => {
         const jatuhTempo = tagihan[0]?.tanggalJatuhTempo || today
         console.log(`📲 Mengirim WA ke ${nama} (${target}) — ${tagihan.length} tagihan`) 
 
+        const category = getReminderCategory(jatuhTempo)
+
         const response = await sendWhatsapp({
             target,
             nama,
-            jatuhTempo
+            jatuhTempo,
+            category
         })
 
-        console.log('   Response WA:', response)
+        console.log('Response WA:', response)
         sentCount++
 
         const isLastRecipient = index === recipients.length - 1
@@ -129,9 +179,17 @@ export const runSendWhatsappJob = async () => {
 
     console.log(`✅ Job selesai. Pesan terkirim: ${sentCount}, skip: ${skippedCount}`)
 
+    // return {
+    //     totalTagihan: invoices.length,
+    //     dueToday: dueToday.length,
+    //     recipients: recipients.length,
+    //     sent: sentCount,
+    //     skipped: skippedCount
+    // }
+
     return {
         totalTagihan: invoices.length,
-        dueToday: dueToday.length,
+        dueRange: dueRange.length,
         recipients: recipients.length,
         sent: sentCount,
         skipped: skippedCount

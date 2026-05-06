@@ -1,151 +1,193 @@
 // ======================
-// TEMPLATE PESAN
+// TEMPLATE PER KATEGORI
 // ======================
-const messageTemplates = [
-    ({ nama, jatuhTempo }) => `Halo ${nama},
+const messageTemplates = {
 
-*Pengingat Tagihan Sewa Kos*
+    // ======================
+    // BEFORE (H-3 s/d H-1)
+    // ======================
+    BEFORE: [
+        ({ nama, jatuhTempo }) => `Halo ${nama} 😊
 
-Tagihan sewa kos Anda akan jatuh tempo pada ${jatuhTempo}.
-Mohon segera melakukan pembayaran agar tetap nyaman.
+            📌 Pengingat Tagihan Sewa Kos  
+            Tagihan Anda jatuh tempo pada ${jatuhTempo}.
 
-Terima kasih 🙏`,
+            Mohon dipersiapkan pembayarannya 🙏`,
 
-    ({ nama, jatuhTempo }) => `Hai ${nama},
+        ({ nama, jatuhTempo }) => `Hai ${nama} 👋
 
-Kami mengingatkan bahwa tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.
+            ⏰ Tagihan sewa kos Anda mendekati jatuh tempo (${jatuhTempo}).
 
-Mohon bantuannya untuk segera melakukan pembayaran ya.`,
+            Mohon diperhatikan ya 🙏`,
 
-    ({ nama, jatuhTempo }) => `Yth. ${nama},
+        ({ nama, jatuhTempo }) => `Halo ${nama} 😊
 
-Dengan hormat, kami informasikan bahwa tagihan sewa kos Anda akan jatuh tempo pada ${jatuhTempo}.
+📌 Reminder  
+Tanggal jatuh tempo tagihan sewa kos Anda adalah ${jatuhTempo}.`,
 
-Terima kasih atas perhatian dan kerja samanya.`,
+        ({ nama, jatuhTempo }) => `Hai ${nama} 👋
 
-    ({ nama, jatuhTempo }) => `Halo ${nama},
+💰 Mohon diingat, tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.`,
 
-Jangan lupa ya 😊  
-Tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.
+        ({ nama, jatuhTempo }) => `Halo ${nama} 😊
 
-Silakan segera diselesaikan.`,
+⏰ Tagihan sewa kos Anda akan segera jatuh tempo (${jatuhTempo}).`,
 
-    ({ nama, jatuhTempo }) => `Hai ${nama},
+        ({ nama, jatuhTempo }) => `Hai ${nama} 👋
 
-Tagihan sewa kos Anda akan segera jatuh tempo (${jatuhTempo}).
+📌 Sekadar pengingat, tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.`,
 
-Kami tunggu konfirmasi pembayarannya 🙏`,
+        ({ nama, jatuhTempo }) => `Halo ${nama} 😊
 
-    ({ nama, jatuhTempo }) => `Halo ${nama},
+💰 Mohon dapat mempersiapkan pembayaran sebelum ${jatuhTempo}.`,
 
-Ini adalah pengingat bahwa tagihan sewa kos Anda akan jatuh tempo pada ${jatuhTempo}.
+        ({ nama, jatuhTempo }) => `Hai ${nama} 👋
 
-Mohon segera diproses.
+⏰ Tagihan sewa kos Anda mendekati tanggal jatuh tempo (${jatuhTempo}).`,
 
-Terima kasih.`,
+        ({ nama, jatuhTempo }) => `Halo ${nama} 😊
 
-    ({ nama, jatuhTempo }) => `Yth. ${nama},
+📌 Jangan sampai terlewat  
+Jatuh tempo: ${jatuhTempo} 🙏`,
 
-Kami ingin mengingatkan kembali bahwa tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.
+        ({ nama, jatuhTempo }) => `Hai ${nama} 👋
 
-Mohon kesediaannya untuk menyelesaikan tepat waktu.`,
+💰 Reminder sederhana, jatuh tempo tagihan Anda ${jatuhTempo}.`
+    ],
 
-    ({ nama, jatuhTempo }) => `Halo ${nama},
+    // ======================
+    // TODAY (H)
+    // ======================
+    TODAY: [
+        ({ nama, jatuhTempo }) => `Halo ${nama},
 
-Reminder 📌  
-Tanggal jatuh tempo tagihan sewa kos Anda adalah ${jatuhTempo}.
-
-Terima kasih atas perhatiannya.`,
-
-    ({ nama, jatuhTempo }) => `Hai ${nama},
-
-Sekadar mengingatkan bahwa tagihan sewa kos Anda akan jatuh tempo pada ${jatuhTempo}.
-
-Mohon segera ditindaklanjuti ya 🙏`,
-
-    ({ nama, jatuhTempo }) => `Halo ${nama},
-
-Tagihan sewa kos Anda mendekati jatuh tempo (${jatuhTempo}).
-
-Silakan melakukan pembayaran sebelum tanggal tersebut.`,
-
-    ({ nama, jatuhTempo }) => `Yth. ${nama},
-
-Kami informasikan bahwa tagihan sewa kos Anda akan jatuh tempo pada ${jatuhTempo}.
-
-Terima kasih atas kerja samanya.`,
-
-    ({ nama, jatuhTempo }) => `Halo ${nama},
-
-Pengingat sederhana 😊  
-Tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.
+Tagihan sewa kos Anda jatuh tempo hari ini (${jatuhTempo}).
 
 Mohon segera diselesaikan.`,
 
-    ({ nama, jatuhTempo }) => `Hai ${nama},
+        ({ nama, jatuhTempo }) => `Hai ${nama},
 
-Mohon diingat bahwa tagihan sewa kos Anda akan jatuh tempo pada ${jatuhTempo}.
+Hari ini adalah tanggal jatuh tempo tagihan sewa kos Anda (${jatuhTempo}).`,
 
-Terima kasih 🙏`,
+        ({ nama, jatuhTempo }) => `Halo ${nama},
 
-    ({ nama, jatuhTempo }) => `Halo ${nama},
+Ini adalah pengingat bahwa tagihan sewa kos Anda jatuh tempo hari ini (${jatuhTempo}).`,
 
-Ini adalah notifikasi bahwa tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.
+        ({ nama, jatuhTempo }) => `Hai ${nama},
 
-Harap segera melakukan pembayaran.`,
+Tagihan sewa kos Anda jatuh tempo hari ini.
 
-    ({ nama, jatuhTempo }) => `Yth. ${nama},
+Mohon segera diproses.`,
 
-Kami menginformasikan bahwa tagihan sewa kos Anda akan jatuh tempo pada ${jatuhTempo}.
+        ({ nama, jatuhTempo }) => `Halo ${nama},
 
-Mohon untuk dapat segera dipenuhi.`,
+Mohon segera menyelesaikan tagihan sewa kos Anda yang jatuh tempo hari ini (${jatuhTempo}).`,
 
-    ({ nama, jatuhTempo }) => `Halo ${nama},
+        ({ nama, jatuhTempo }) => `Hai ${nama},
 
-Reminder penting 📌  
-Tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.
+Hari ini merupakan batas pembayaran tagihan sewa kos Anda (${jatuhTempo}).`,
 
-Terima kasih atas perhatian Anda.`,
+        ({ nama, jatuhTempo }) => `Halo ${nama},
 
-    ({ nama, jatuhTempo }) => `Hai ${nama},
+Tagihan sewa kos Anda perlu diselesaikan hari ini (${jatuhTempo}).`,
 
-Tagihan sewa kos Anda akan jatuh tempo pada ${jatuhTempo}.
+        ({ nama, jatuhTempo }) => `Hai ${nama},
 
-Kami harap dapat segera diproses 🙏`,
+Mohon perhatian, tagihan sewa kos Anda jatuh tempo hari ini (${jatuhTempo}).`,
 
-    ({ nama, jatuhTempo }) => `Halo ${nama},
+        ({ nama, jatuhTempo }) => `Halo ${nama},
 
-Mohon perhatian bahwa tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.
+Jatuh tempo tagihan sewa kos Anda adalah hari ini (${jatuhTempo}).`,
 
-Silakan segera melakukan pembayaran.`,
+        ({ nama, jatuhTempo }) => `Hai ${nama},
 
-    ({ nama, jatuhTempo }) => `Yth. ${nama},
+Mohon segera melakukan pembayaran untuk tagihan hari ini.`
+    ],
 
-Pengingat bahwa tagihan sewa kos Anda akan jatuh tempo pada ${jatuhTempo}.
+    // ======================
+    // AFTER (H+)
+    // ======================
+    AFTER: [
+        ({ nama, jatuhTempo }) => `Halo ${nama},
 
-Terima kasih atas kerja sama Anda.`,
+Tagihan sewa kos dengan jatuh tempo ${jatuhTempo} belum kami terima.
 
-    ({ nama, jatuhTempo }) => `Halo ${nama},
+Mohon segera diselesaikan.`,
 
-Jangan sampai terlewat 😊  
-Tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.
+        ({ nama, jatuhTempo }) => `Hai ${nama},
 
-Terima kasih 🙏`
-]
+Tagihan sewa kos Anda (${jatuhTempo}) masih belum dibayarkan.
+
+Mohon segera ditindaklanjuti.`,
+
+        ({ nama, jatuhTempo }) => `Halo ${nama},
+
+Tagihan sewa kos Anda masih tertunda sejak ${jatuhTempo}.
+
+Mohon segera dilakukan pembayaran.`,
+
+        ({ nama, jatuhTempo }) => `Hai ${nama},
+
+Kami mencatat bahwa tagihan sewa kos Anda (${jatuhTempo}) belum terselesaikan.`,
+
+        ({ nama, jatuhTempo }) => `Halo ${nama},
+
+Tagihan sewa kos Anda masih belum kami terima hingga saat ini (${jatuhTempo}).`,
+
+        ({ nama, jatuhTempo }) => `Hai ${nama},
+
+Tagihan sewa kos Anda masih dalam status belum dibayar (${jatuhTempo}).`,
+
+        ({ nama, jatuhTempo }) => `Halo ${nama},
+
+Tagihan sewa kos Anda telah melewati jatuh tempo (${jatuhTempo}).`,
+
+        ({ nama, jatuhTempo }) => `Hai ${nama},
+
+Kami masih menunggu pembayaran untuk tagihan sewa kos Anda (${jatuhTempo}).`,
+
+        ({ nama, jatuhTempo }) => `Halo ${nama},
+
+Mohon segera menyelesaikan tagihan sewa kos yang tertunda (${jatuhTempo}).`,
+
+        ({ nama, jatuhTempo }) => `Hai ${nama},
+
+Tagihan sewa kos Anda masih belum diselesaikan (${jatuhTempo}).`
+    ]
+}
 
 // ======================
-// RANDOM TANPA ULANG BERURUTAN
+// TRACK LAST INDEX PER CATEGORY
 // ======================
-let lastIndex = -1
+let lastIndexMap = {
+    BEFORE: -1,
+    TODAY: -1,
+    AFTER: -1
+}
 
-export const getRandomTemplate = (data) => {
+// ======================
+// GET RANDOM TEMPLATE
+// ======================
+export const getRandomTemplate = ({ nama, jatuhTempo, category }) => {
+
+    // fallback kalau category undefined
+    const selectedCategory = category || 'BEFORE'
+
+    const templates = messageTemplates[selectedCategory]
+
+    // safety fallback
+    if (!templates || templates.length === 0) {
+        console.warn(`Template untuk category ${selectedCategory} tidak ditemukan`)
+        return `Halo ${nama}, tagihan Anda jatuh tempo pada ${jatuhTempo}.`
+    }
+
     let randomIndex
 
     do {
-        randomIndex = Math.floor(Math.random() * messageTemplates.length)
-    } while (randomIndex === lastIndex)
+        randomIndex = Math.floor(Math.random() * templates.length)
+    } while (randomIndex === lastIndexMap[selectedCategory])
 
-    lastIndex = randomIndex
+    lastIndexMap[selectedCategory] = randomIndex
 
-    return messageTemplates[randomIndex](data)
+    return templates[randomIndex]({ nama, jatuhTempo })
 }

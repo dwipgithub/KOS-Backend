@@ -18,10 +18,15 @@ export const sendWhatsapp = async ({
     target,
     nama,
     jatuhTempo,
+    category,
     countryCode = "62"
 }) => {
 
-    const message = getRandomTemplate({ nama, jatuhTempo })
+    const message = getRandomTemplate({ 
+        nama, 
+        jatuhTempo, 
+        category
+    })
 
     try {
         const response = await axios.post(
