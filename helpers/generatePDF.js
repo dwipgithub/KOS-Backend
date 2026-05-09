@@ -6,6 +6,10 @@ import fs from 'fs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+const logoPath = path.resolve(__dirname, '../assets/logo.png')
+const logoBase64 = fs.readFileSync(logoPath, { encoding: 'base64' })
+const logoSrc = `data:image/png;base64,${logoBase64}`
+
 export const generatePdfArusKas = async (data, filters = {}) => {
     let browser = null
 
@@ -56,7 +60,7 @@ export const generatePdfArusKas = async (data, filters = {}) => {
         const pdfBuffer = await page.pdf({
             format: 'A4',
             margin: {
-                top: '15mm',
+                top: '5mm',
                 right: '10mm',
                 bottom: '15mm',
                 left: '10mm'
@@ -172,16 +176,66 @@ const generateArusKasHTML = (data, filters) => {
                     line-height: 1.4;
                     color: #333;
                 }
-                
-                .container {
-                    padding: 15px;
-                }
-                
+
                 .header {
-                    text-align: center;
-                    margin-bottom: 20px;
+                    display: flex;
+                    align-items: center;
                     border-bottom: 3px solid #2c3e50;
-                    padding-bottom: 12px;
+                    padding-bottom: 8px;
+                    margin-bottom: 10px;
+                    gap: 6px;
+                }
+
+                .header-left {
+                    display: flex;
+                    align-items: center;
+                    flex-shrink: 0;
+                }
+
+                .logo {
+                    width: 100px;
+                    height: auto;
+                    object-fit: contain;
+                    display: block;
+                }
+
+                .header-center {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-left: -3px;
+                }
+
+                .header-center h1 {
+                    font-size: 18px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                    line-height: 1.1;
+                }
+
+                .header-center p {
+                    font-size: 10px;
+                    color: #666;
+                    margin: 2px 0;
+                    line-height: 1.3;
+                }
+
+                .header-right {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    text-align: right;
+                }
+
+                .header-right h2 {
+                    font-size: 20px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                }
+
+                .header-right p {
+                    font-size: 12px;
+                    color: #666;
                 }
                 
                 .header h1 {
@@ -191,8 +245,32 @@ const generateArusKasHTML = (data, filters) => {
                 }
                 
                 .header p {
+                    font-size: 12px;
+                    color: #666;
+                }
+
+                .report-title {
+                    text-align: center;
+                    margin-top: 15px;
+                    margin-bottom: 15px;
+                }
+
+                .report-title h1 {
+                    font-size: 16px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                    font-weight: bold;
+                }
+
+                .report-title p {
                     font-size: 10px;
                     color: #666;
+                }
+
+                .periode-text {
+                    margin-bottom: 5px;
+                    font-size: 11px;
+                    color: #555;
                 }
                 
                 .filter-info {
@@ -210,12 +288,12 @@ const generateArusKasHTML = (data, filters) => {
                 }
                 
                 thead {
-                    background-color: #34495e;
-                    color: white;
+                    background-color: #f1f5f9;
+                    color: #334155;
                 }
-                
+
                 thead th {
-                    border: 1px solid #34495e;
+                    border: 1px solid #cbd5e1;
                     padding: 8px;
                     text-align: left;
                     font-weight: 600;
@@ -296,12 +374,25 @@ const generateArusKasHTML = (data, filters) => {
         <body>
             <div class="container">
                 <div class="header">
+                    <div class="header-left">
+                        <img src="${logoSrc}" alt="Logo" class="logo" />
+                    </div>
+
+                    <div class="header-center">
+                        <h1>${filters.namaProperti}</h1>
+                        <p>${filters.alamatProperti}</p>
+                        <p>${filters.noTelpProperti}</p>
+                    </div>
+                </div>
+
+                <div class="report-title">
                     <h1>LAPORAN ARUS KAS</h1>
                     <p>Tanggal Cetak: ${currentDate}</p>
                 </div>
-                
-                ${filterText ? `<div class="filter-info"><strong>Periode:</strong> ${filterText}</div>` : ''}
-                ${filters.namaProperti ? `<div class="filter-info"><strong>Properti:</strong> ${filters.namaProperti}</div>` : ''}
+
+                <p class="periode-text">
+                    Periode: ${filterText || 'Semua Data'}
+                </p>
                 
                 <table>
                     <thead>
@@ -335,15 +426,6 @@ const generateArusKasHTML = (data, filters) => {
                         <span>${formatCurrency(saldo)}</span>
                     </div>
                 </div>
-                
-                <div class="signature">
-                    <div class="signature-box">
-                        <p style="font-size: 11px; margin-bottom: 30px;">Manager</p>
-                        <div class="signature-line"></div>
-                        <p style="font-size: 10px; margin-top: 5px;">Nama & Tanda Tangan</p>
-                    </div>
-                </div>
-                
                 <div class="footer">
                     <p>Dokumen ini dicetak dari sistem Manajemen Kos</p>
                 </div>
@@ -398,7 +480,7 @@ export const generatePdfLabaRugi = async (data, filters = {}) => {
         const pdfBuffer = await page.pdf({
             format: 'A4',
             margin: {
-                top: '15mm',
+                top: '5mm',
                 right: '10mm',
                 bottom: '15mm',
                 left: '10mm'
@@ -478,15 +560,81 @@ const generateLabaRugiHTML = (data, filters) => {
                     color: #333;
                 }
                 
-                .container {
-                    padding: 15px;
-                }
-                
-                .header {
-                    text-align: center;
-                    margin-bottom: 20px;
+                 .header {
+                    display: flex;
+                    align-items: center;
                     border-bottom: 3px solid #2c3e50;
-                    padding-bottom: 12px;
+                    padding-bottom: 8px;
+                    margin-bottom: 10px;
+                    gap: 6px;
+                }
+
+                .header-left {
+                    display: flex;
+                    align-items: center;
+                    flex-shrink: 0;
+                }
+
+                .logo {
+                    width: 100px;
+                    height: auto;
+                    object-fit: contain;
+                    display: block;
+                }
+
+                .header-center {
+                    flex: 1;
+                }
+
+                .header-center h1 {
+                    font-size: 20px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                }
+
+                .header-center p {
+                    font-size: 12px;
+                    color: #666;
+                    margin: 2px 0;
+                }
+
+                .report-title {
+                    text-align: center;
+                    margin-top: 15px;
+                    margin-bottom: 15px;
+                }
+
+                .report-title h1 {
+                    font-size: 16px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                    font-weight: bold;
+                }
+
+                .report-title p {
+                    font-size: 10px;
+                    color: #666;
+                }
+
+                .periode-text {
+                    margin-bottom: 5px;
+                    font-size: 11px;
+                    color: #555;
+                }
+
+                .header-right {
+                    text-align: right;
+                }
+
+                .header-right h2 {
+                    font-size: 16px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                }
+
+                .header-right p {
+                    font-size: 10px;
+                    color: #666;
                 }
                 
                 .header h1 {
@@ -515,12 +663,12 @@ const generateLabaRugiHTML = (data, filters) => {
                 }
                 
                 thead {
-                    background-color: #34495e;
-                    color: white;
+                    background-color: #f1f5f9;
+                    color: #334155;
                 }
-                
+
                 thead th {
-                    border: 1px solid #34495e;
+                    border: 1px solid #cbd5e1;
                     padding: 8px;
                     text-align: left;
                     font-weight: 600;
@@ -552,15 +700,26 @@ const generateLabaRugiHTML = (data, filters) => {
         <body>
             <div class="container">
                 <div class="header">
+                    <div class="header-left">
+                        <img src="${logoSrc}" alt="Logo" class="logo" />
+                    </div>
+
+                    <div class="header-center">
+                        <h1>${filters.namaProperti}</h1>
+                        <p>${filters.alamatProperti}</p>
+                        <p>${filters.noTelpProperti}</p>
+                    </div>
+                </div>
+                
+                <div class="report-title">
                     <h1>LAPORAN LABA RUGI</h1>
                     <p>Tanggal Cetak: ${currentDate}</p>
                 </div>
-                
-                ${filterText ? `<div class="filter-info"><strong>Periode:</strong> ${filterText}</div>` : ''}
-                
-                ${filters.namaProperti ? `<div class="filter-info"><strong>Properti:</strong> ${filters.namaProperti}</div>` : ''}
-                
-                <h3 style="margin-top: 15px; margin-bottom: 10px; color: #2c3e50;">PENDAPATAN</h3>
+
+                <p class="periode-text">
+                    Periode: ${filterText || 'Semua Data'}
+                </p>
+
                 <table style="table-layout: fixed;">
                     <colgroup>
                         <col style="width: 70%;" />
@@ -678,7 +837,7 @@ export const generatePdfBukuBesar = async (data, filters = {}) => {
         const pdfBuffer = await page.pdf({
             format: 'A4',
             margin: {
-                top: '15mm',
+                top: '5mm',
                 right: '10mm',
                 bottom: '15mm',
                 left: '10mm'
@@ -757,12 +916,12 @@ const generateBukuBesarHTML = (data, filters) => {
                     <col style="width: 16%;" />
                 </colgroup>
                 <thead>
-                    <tr style="background-color: #34495e; color: white;">
-                        <th style="border: 1px solid #34495e; padding: 6px;">Tanggal</th>
-                        <th style="border: 1px solid #34495e; padding: 6px;">Keterangan</th>
-                        <th style="border: 1px solid #34495e; padding: 6px; text-align: right;">Debit</th>
-                        <th style="border: 1px solid #34495e; padding: 6px; text-align: right;">Kredit</th>
-                        <th style="border: 1px solid #34495e; padding: 6px; text-align: right;">Saldo</th>
+                    <tr style="background-color:  #f1f5f9; color: #334155;">
+                        <th style="border: 1px solid  #f1f5f9; padding: 6px;">Tanggal</th>
+                        <th style="border: 1px solid  #f1f5f9; padding: 6px;">Keterangan</th>
+                        <th style="border: 1px solid  #f1f5f9; padding: 6px; text-align: right;">Debit</th>
+                        <th style="border: 1px solid  #f1f5f9; padding: 6px; text-align: right;">Kredit</th>
+                        <th style="border: 1px solid  #f1f5f9; padding: 6px; text-align: right;">Saldo</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -800,29 +959,69 @@ const generateBukuBesarHTML = (data, filters) => {
                     line-height: 1.3;
                     color: #333;
                 }
-                
-                .container {
-                    padding: 12px;
-                }
-                
-                .header {
-                    text-align: center;
-                    margin-bottom: 15px;
+
+                 .header {
+                    display: flex;
+                    align-items: center;
                     border-bottom: 3px solid #2c3e50;
-                    padding-bottom: 10px;
+                    padding-bottom: 8px;
+                    margin-bottom: 10px;
+                    gap: 6px;
+                }
+
+                .header-left {
+                    display: flex;
+                    align-items: center;
+                    flex-shrink: 0;
+                }
+
+                .logo {
+                    width: 100px;
+                    height: auto;
+                    object-fit: contain;
+                    display: block;
                 }
                 
-                .header h1 {
-                    font-size: 16px;
-                    margin-bottom: 2px;
+                .header-center {
+                    flex: 1;
+                }
+
+                .header-center h1 {
+                    font-size: 20px;
                     color: #2c3e50;
+                    margin-bottom: 4px;
                 }
-                
-                .header p {
-                    font-size: 9px;
+
+                .header-center p {
+                    font-size: 12px;
+                    color: #666;
+                    margin: 2px 0;
+                }
+
+                .report-title {
+                    text-align: center;
+                    margin-top: 15px;
+                    margin-bottom: 15px;
+                }
+
+                .report-title h1 {
+                    font-size: 16px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                    font-weight: bold;
+                }
+
+                .report-title p {
+                    font-size: 10px;
                     color: #666;
                 }
-                
+
+                .periode-text {
+                    margin-bottom: 5px;
+                    font-size: 11px;
+                    color: #555;
+                }
+
                 .filter-info {
                     margin-bottom: 10px;
                     padding: 6px;
@@ -860,13 +1059,25 @@ const generateBukuBesarHTML = (data, filters) => {
         <body>
             <div class="container">
                 <div class="header">
+                    <div class="header-left">
+                        <img src="${logoSrc}" alt="Logo" class="logo" />
+                    </div>
+
+                    <div class="header-center">
+                        <h1>${filters.namaProperti}</h1>
+                        <p>${filters.alamatProperti}</p>
+                        <p>${filters.noTelpProperti}</p>
+                    </div>
+                </div>
+                
+                <div class="report-title">
                     <h1>LAPORAN BUKU BESAR</h1>
                     <p>Tanggal Cetak: ${currentDate}</p>
                 </div>
-                
-                ${filterText ? `<div class="filter-info"><strong>Periode:</strong> ${filterText}</div>` : ''}
-                
-                ${filters.namaProperti ? `<div class="filter-info"><strong>Properti:</strong> ${filters.namaProperti}</div>` : ''}
+
+                <p class="periode-text">
+                    Periode: ${filterText || 'Semua Data'}
+                </p>
                 
                 ${akunRows}
                 
@@ -957,10 +1168,10 @@ export const generatePdfPiutang = async (data, filters = {}) => {
             format: 'A4',
             printBackground: true,
             margin: {
-                top: '20px',
-                right: '20px',
-                bottom: '20px',
-                left: '20px'
+                top: '5mm',
+                right: '10mm',
+                bottom: '15mm',
+                left: '10mm'
             },
             preferCSSPageSize: false,
             displayHeaderFooter: false
@@ -1083,26 +1294,66 @@ const generatePiutangHTML = (data, filters) => {
                     color: #333;
                 }
 
-                .container {
-                    padding: 15px;
-                }
-
-                .header {
-                    text-align: center;
-                    margin-bottom: 20px;
+                 .header {
+                    display: flex;
+                    align-items: center;
                     border-bottom: 3px solid #2c3e50;
-                    padding-bottom: 12px;
+                    padding-bottom: 8px;
+                    margin-bottom: 10px;
+                    gap: 6px;
                 }
 
-                .header h1 {
-                    font-size: 18px;
-                    margin-bottom: 3px;
+                .header-left {
+                    display: flex;
+                    align-items: center;
+                    flex-shrink: 0;
+                }
+
+                .logo {
+                    width: 100px;
+                    height: auto;
+                    object-fit: contain;
+                    display: block;
+                }
+                
+                .header-center {
+                    flex: 1;
+                }
+
+                .header-center h1 {
+                    font-size: 20px;
                     color: #2c3e50;
+                    margin-bottom: 4px;
                 }
 
-                .header p {
+                .header-center p {
+                    font-size: 12px;
+                    color: #666;
+                    margin: 2px 0;
+                }
+
+                .report-title {
+                    text-align: center;
+                    margin-top: 15px;
+                    margin-bottom: 15px;
+                }
+
+                .report-title h1 {
+                    font-size: 16px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                    font-weight: bold;
+                }
+
+                .report-title p {
                     font-size: 10px;
                     color: #666;
+                }
+
+                .periode-text {
+                    margin-bottom: 5px;
+                    font-size: 11px;
+                    color: #555;
                 }
 
                 .filter-info {
@@ -1175,12 +1426,25 @@ const generatePiutangHTML = (data, filters) => {
         <body>
             <div class="container">
                 <div class="header">
+                    <div class="header-left">
+                        <img src="${logoSrc}" alt="Logo" class="logo" />
+                    </div>
+
+                    <div class="header-center">
+                        <h1>${filters.namaProperti}</h1>
+                        <p>${filters.alamatProperti}</p>
+                        <p>${filters.noTelpProperti}</p>
+                    </div>
+                </div>
+                
+                <div class="report-title">
                     <h1>LAPORAN PIUTANG</h1>
                     <p>Tanggal Cetak: ${currentDate}</p>
                 </div>
 
-                ${filterText ? `<div class="filter-info"><strong>Periode:</strong> ${filterText}</div>` : ''}
-                ${filters.namaProperti ? `<div class="filter-info"><strong>Properti:</strong> ${filters.namaProperti}</div>` : ''}
+                <p class="periode-text">
+                    Periode: ${filterText || 'Semua Data'}
+                </p>
 
                 <div class="summary-cards">
                     <div class="summary-card">

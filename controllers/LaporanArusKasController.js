@@ -1,11 +1,24 @@
 import { get } from '../models/LaporanArusKas.js'
-import { properti } from '../models/Properti.js'
+import { properti, show } from '../models/Properti.js'
+import Joi from 'joi';
 import paginationDB from '../config/PaginationDB.js'
 import * as response from '../helpers/response.js'
 import { generatePdfArusKas } from '../helpers/generatePDF.js'
 
 export const getLaporanArusKas = async(req, res) => {
     try {
+        const schema = Joi.object({
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required(),
+            idProperti: Joi.string().required()
+        })
+
+        const { error } = schema.validate(req.query)
+
+        if (error) {
+            return response.error(res, error.details[0].message, 400)
+        }
+
         const results = await get(req)
 
         const paginationDBObject = new paginationDB(
@@ -35,8 +48,20 @@ export const getLaporanArusKas = async(req, res) => {
 
 export const exportPdfArusKas = async(req, res) => {
     try {
-        console.log('=== EXPORT PDF START ===')
-        console.log('Query params:', req.query)
+        const schema = Joi.object({
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required(),
+            idProperti: Joi.string().required()
+        })
+
+        const { error } = schema.validate(req.query)
+
+        if (error) {
+            return response.error(res, error.details[0].message, 400)
+        }
+
+        // console.log('=== EXPORT PDF START ===')
+        // console.log('Query params:', req.query)
         
         // Disable pagination untuk export semua data
         req.query.limit = 999999
@@ -57,11 +82,20 @@ export const exportPdfArusKas = async(req, res) => {
 
         if (req.query.idProperti) {
             try {
-                const propertiData = await properti.findByPk(req.query.idProperti, {
-                    attributes: ['nama']
-                })
+                const propertiData = await show(req.query.idProperti)
+
                 if (propertiData) {
                     filters.namaProperti = propertiData.nama
+                    filters.alamatProperti = [
+                        propertiData.alamat,
+                        propertiData.kelurahan?.nama,
+                        propertiData.kecamatan?.nama,
+                        propertiData.kabKota?.nama,
+                        propertiData.provinsi?.nama
+                    ]
+                    .filter(Boolean)
+                    .join(', ')
+                    filters.noTelpProperti = propertiData.noTelp
                 }
             } catch (error) {
                 console.warn('Could not fetch properti name:', error.message)
