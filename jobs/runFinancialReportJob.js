@@ -103,6 +103,19 @@ export const runFinancialReportJob = async () => {
                 const propertyName = property.nama || propertyId
                 console.log(`\n🔎 Memproses properti: ${propertyName} (${propertyId})`)
 
+                // Build address from existing property response
+                const alamatProperti = [
+                    property.alamat,
+                    property.kelurahan?.nama,
+                    property.kecamatan?.nama,
+                    property.kabKota?.nama,
+                    property.provinsi?.nama
+                ]
+                    .filter(Boolean)
+                    .join(', ')
+
+                const noTelpProperti = property.noTelp || '-'
+
                 const arusKasReq = {
                     query: {
                         startDate,
@@ -116,7 +129,9 @@ export const runFinancialReportJob = async () => {
                     startDate,
                     endDate,
                     idProperti: propertyId,
-                    namaProperti: propertyName
+                    namaProperti: propertyName,
+                    alamatProperti,
+                    noTelpProperti
                 })
 
                 const labaRugiReq = {
@@ -131,7 +146,9 @@ export const runFinancialReportJob = async () => {
                     startDate,
                     endDate,
                     idProperti: propertyId,
-                    namaProperti: propertyName
+                    namaProperti: propertyName,
+                    alamatProperti,
+                    noTelpProperti
                 })
 
                 const bukuBesarReq = {
@@ -146,7 +163,9 @@ export const runFinancialReportJob = async () => {
                     startDate,
                     endDate,
                     idProperti: propertyId,
-                    namaProperti: propertyName
+                    namaProperti: propertyName,
+                    alamatProperti,
+                    noTelpProperti
                 })
 
                 const piutangReq = {
@@ -161,7 +180,9 @@ export const runFinancialReportJob = async () => {
                     startDate,
                     endDate,
                     idProperti: propertyId,
-                    namaProperti: propertyName
+                    namaProperti: propertyName,
+                    alamatProperti,
+                    noTelpProperti
                 })
 
                 const safePropertyName = sanitizeFileName(propertyName)
