@@ -86,7 +86,7 @@ export const createMutasiKas = async (req, res) => {
             temp_key: uniqueKey
         })
 
-        const data = await mutasi_kas.findOne({
+        const data = await mutasi_kas_operasional.findOne({
             where: {
                 temp_key: uniqueKey
             }
