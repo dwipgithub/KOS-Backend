@@ -12,6 +12,9 @@ export const pengeluaran = database.define('pengeluaran', {
     id_kamar: {
         type: DataTypes.STRING
     },
+    id_kas: {
+        type: DataTypes.STRING
+    },
     id_kategori_pengeluaran: {
         type: DataTypes.STRING
     },
@@ -59,6 +62,8 @@ export const get = async (req) => {
                 pr.nama AS properti_nama,
                 p.id_kamar,
                 k.nama AS kamar_nama,
+                p.id_kas,
+                ks.nama AS kas_nama,
                 p.id_kategori_pengeluaran,
                 kp.nama AS kategori_pengeluaran_nama,
                 p.tanggal_pengeluaran,
@@ -74,6 +79,7 @@ export const get = async (req) => {
             FROM KOS.pengeluaran p
             LEFT JOIN KOS.properti pr ON p.id_properti = pr.id
             LEFT JOIN KOS.kamar k ON p.id_kamar = k.id
+            LEFT JOIN KOS.kas ks ON p.id_kas = ks.id
             LEFT JOIN KOS.kategori_pengeluaran kp ON p.id_kategori_pengeluaran = kp.id
         `
 
@@ -90,6 +96,7 @@ export const get = async (req) => {
             nama,
             id_properti,
             id_kamar,
+            id_kas,
             id_kategori_pengeluaran,
             startDate, 
             endDate
@@ -108,6 +115,11 @@ export const get = async (req) => {
         if (id_kamar) {
             filters.push('p.id_kamar = ?')
             replacements.push(id_kamar)
+        }
+
+        if (id_kas) {
+            filters.push('p.id_kas = ?')
+            replacements.push(id_kas)
         }
 
         if (id_kategori_pengeluaran) {
@@ -155,6 +167,10 @@ export const get = async (req) => {
                 id: item.id_kamar,
                 nama: item.kamar_nama
             },
+            kas: {
+                id: item.id_kas,
+                nama: item.kas_nama
+            },
             kategoriPengeluaran: {
                 id: item.id_kategori_pengeluaran,
                 nama: item.kategori_pengeluaran_nama
@@ -172,6 +188,7 @@ export const get = async (req) => {
             FROM KOS.pengeluaran p
             LEFT JOIN KOS.properti pr ON p.id_properti = pr.id
             LEFT JOIN KOS.kamar k ON p.id_kamar = k.id
+            LEFT JOIN KOS.kas ks ON p.id_kas = ks.id
             LEFT JOIN KOS.kategori_pengeluaran kp ON p.id_kategori_pengeluaran = kp.id
             ${sqlWhere}
         `
@@ -205,6 +222,8 @@ export const show = async (id) => {
                 pr.nama AS properti_nama,
                 p.id_kamar,
                 k.nama AS kamar_nama,
+                p.id_kas,
+                ks.nama AS kas_nama,
                 p.id_kategori_pengeluaran,
                 kp.nama AS kategori_pengeluaran_nama,
                 p.tanggal_pengeluaran,
@@ -220,6 +239,7 @@ export const show = async (id) => {
             FROM KOS.pengeluaran p
             LEFT JOIN KOS.properti pr ON p.id_properti = pr.id
             LEFT JOIN KOS.kamar k ON p.id_kamar = k.id
+            LEFT JOIN KOS.kas ks ON p.id_kas = ks.id
             LEFT JOIN KOS.kategori_pengeluaran kp ON p.id_kategori_pengeluaran = kp.id
         `
 
@@ -263,6 +283,10 @@ export const show = async (id) => {
             kamar: {
                 id: item.id_kamar,
                 nama: item.kamar_nama
+            },
+            kas: {
+                id: item.id_kas,
+                nama: item.kas_nama
             },
             kategoriPengeluaran: {
                 id: item.id_kategori_pengeluaran,

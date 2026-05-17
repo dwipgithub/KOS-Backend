@@ -70,6 +70,7 @@ export const createPengeluaran = async (req, res) => {
             await pengeluaran.create({
                 id_properti: req.body.idProperti,
                 id_kamar: req.body.idKamar || null,
+                id_kas: req.body.idKas,
                 id_kategori_pengeluaran: req.body.idKategoriPengeluaran,
                 tanggal_pengeluaran: req.body.tanggalPengeluaran,
                 nama: req.body.nama,

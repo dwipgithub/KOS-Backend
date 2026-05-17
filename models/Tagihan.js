@@ -88,7 +88,12 @@ export const get = async (req) => {
         const filters = []
         const replacements = []
 
-        const { idSewa, idStatusTagihan } = req.query
+        const { 
+            idSewa, 
+            idStatusTagihan, 
+            jatuhTempoStart, 
+            jatuhTempoEnd 
+        } = req.query
 
         if (idSewa) {
             filters.push('t.id_sewa = ?')
@@ -98,6 +103,22 @@ export const get = async (req) => {
         if (idStatusTagihan) {
             filters.push('t.id_status_tagihan = ?')
             replacements.push(idStatusTagihan)
+        }
+
+        // ======================
+        // FILTER TANGGAL JATUH TEMPO
+        // ======================
+        if (jatuhTempoStart && jatuhTempoEnd) {
+            filters.push('t.tanggal_jatuh_tempo BETWEEN ? AND ?')
+            replacements.push(jatuhTempoStart, jatuhTempoEnd)
+
+        } else if (jatuhTempoStart) {
+            filters.push('t.tanggal_jatuh_tempo >= ?')
+            replacements.push(jatuhTempoStart)
+
+        } else if (jatuhTempoEnd) {
+            filters.push('t.tanggal_jatuh_tempo <= ?')
+            replacements.push(jatuhTempoEnd)
         }
 
         const sqlWhere = filters.length ? ' WHERE ' + filters.join(' AND ') : ''

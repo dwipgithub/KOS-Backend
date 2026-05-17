@@ -47,13 +47,13 @@ export const get = async (req) => {
         const openingSql = `
             SELECT 
                 id_akun,
-                SUM(kredit - debit) AS opening_balance
+                SUM(debit - kredit) AS opening_balance
             FROM (
 
                 SELECT 
                     dt.id_akun AS id_akun,
-                    0 AS debit,
-                    p.total_bayar AS kredit,
+                    p.total_bayar AS debit,
+                    0 AS kredit,
                     p.tanggal_bayar AS tanggal_transaksi,
                     k.id_properti
                 FROM pembayaran p
@@ -66,8 +66,8 @@ export const get = async (req) => {
 
                 SELECT 
                     kp.id_akun AS id_akun,
-                    pg.total AS debit,
-                    0 AS kredit,
+                    0 AS debit,
+                    pg.total AS kredit,
                     pg.tanggal_pengeluaran AS tanggal_transaksi,
                     pg.id_properti
                 FROM pengeluaran pg
@@ -107,8 +107,8 @@ export const get = async (req) => {
                 SELECT 
                     p.tanggal_bayar AS tanggal_transaksi,
                     CONCAT('Pembayaran ', dt.nama) AS keterangan,
-                    0 AS debit,
-                    p.total_bayar AS kredit,
+                    p.total_bayar AS debit,
+                    0 AS kredit,
                     dt.id_akun AS id_akun,
                     a.nama AS nama_akun,
                     k.id_properti AS id_properti,
@@ -129,8 +129,8 @@ export const get = async (req) => {
                 SELECT 
                     pg.tanggal_pengeluaran AS tanggal_transaksi,
                     pg.nama AS keterangan,
-                    pg.total AS debit,
-                    0 AS kredit,
+                    0 AS debit,
+                    pg.total AS kredit,
                     kp.id_akun AS id_akun,
                     a.nama AS nama_akun,
                     pg.id_properti,
@@ -178,7 +178,7 @@ export const get = async (req) => {
             const debit = Number(item.debit || 0)
             const kredit = Number(item.kredit || 0)
 
-            group.saldo = group.saldo + kredit - debit
+            group.saldo = group.saldo + debit - kredit
 
             group.transaksi.push({
                 tanggal: item.tanggal_transaksi,

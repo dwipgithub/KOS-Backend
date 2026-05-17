@@ -19,13 +19,17 @@ export const sendWhatsapp = async ({
     nama,
     jatuhTempo,
     category,
+    dayDiff,
+    ownerPhone,
     countryCode = "62"
 }) => {
 
     const message = getRandomTemplate({ 
         nama, 
         jatuhTempo, 
-        category
+        category,
+        dayDiff,
+        ownerPhone
     })
 
     try {

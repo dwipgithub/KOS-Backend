@@ -3,8 +3,9 @@ import { get as getArusKas } from '../models/LaporanArusKas.js'
 import { get as getLabaRugi } from '../models/LaporanLabaRugi.js'
 import { get as getBukuBesar } from '../models/LaporanBukuBesar.js'
 import { get as getPiutang } from '../models/LaporanPiutang.js'
+import { get as getMutasiKasOperasional } from '../models/LaporanMutasiKasOperasional.js'
 import { get as getProperti } from '../models/Properti.js'
-import { generatePdfArusKas, generatePdfLabaRugi, generatePdfBukuBesar, generatePdfPiutang } from '../helpers/generatePDF.js'
+import { generatePdfArusKas, generatePdfLabaRugi, generatePdfBukuBesar, generatePdfPiutang, generatePdfMutasiKasOperasional } from '../helpers/generatePDF.js'
 import { sendEmail } from '../services/emailService.js'
 import dotenv from 'dotenv'
 import path from 'path'
@@ -57,6 +58,56 @@ const createEmailBody = (propertyName, periodText) => {
             <p>Silakan buka lampiran untuk melihat detail laporan per properti.</p>
         </div>
     `
+}
+
+const sendMutasiKasOperasionalReport = async ({
+    startDate,
+    endDate,
+    periodText,
+    receiverEmail
+}) => {
+
+    const mutasiKasReq = {
+        query: {
+            startDate,
+            endDate,
+            limit: 999999
+        }
+    }
+
+    const mutasiKasResult = await getMutasiKasOperasional(mutasiKasReq)
+
+    const mutasiKasBuffer = await generatePdfMutasiKasOperasional(
+        mutasiKasResult,
+        {
+            startDate,
+            endDate
+        }
+    )
+
+    const attachments = [
+        {
+            filename: `Laporan-Mutasi-Kas-Operasional-${sanitizeFileName(periodText)}.pdf`,
+            content: mutasiKasBuffer,
+            contentType: 'application/pdf'
+        }
+    ]
+
+    const emailSubject = `Laporan Mutasi Kas Operasional (${periodText})`
+
+    const emailBody = `
+        <div>
+            <h2>Laporan Mutasi Kas Operasional</h2>
+            <p>Periode ${periodText}</p>
+        </div>
+    `
+
+    await sendEmail(
+        receiverEmail,
+        emailSubject,
+        emailBody,
+        attachments
+    )
 }
 
 export const runFinancialReportJob = async () => {
@@ -225,6 +276,13 @@ export const runFinancialReportJob = async () => {
                 console.error(`❌ Gagal memproses properti ${property?.nama || property?.id}:`, propertyError)
             }
         }
+
+        await sendMutasiKasOperasionalReport({
+            startDate,
+            endDate,
+            periodText,
+            receiverEmail: RECEIVER_EMAIL
+        })
 
         console.log(`\n✅ Job Laporan Keuangan selesai. Total email terkirim: ${emailSentCount}`)
     } catch (error) {

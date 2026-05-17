@@ -24,6 +24,8 @@ import * as Sewa from '../controllers/SewaController.js'
 import * as Tagihan from '../controllers/TagihanController.js'
 import * as Pembayaran from '../controllers/PembayaranController.js'
 import * as Pengeluaran from '../controllers/PengeluaranController.js'
+import * as Kas from '../controllers/KasController.js'
+import * as MutasiKasOperasional from '../controllers/MutasiKasOperasionalController.js'
 
 // laporan
 import * as LaporanArusKas from '../controllers/LaporanArusKasController.js'
@@ -31,6 +33,7 @@ import * as LaporanLabaRugi from '../controllers/LaporanLabaRugiController.js'
 import * as LaporanBukuBesar from '../controllers/LaporanBukuBesarController.js'
 import * as LaporanPiutang from '../controllers/LaporanPiutangController.js'
 import * as LaporanTagihan from '../controllers/LaporanTagihanController.js'
+import * as LaporanMutasiKasOperasional from '../controllers/LaporanMutasiKasOperasional.js'
 
 // master data
 import { getProvinsi } from '../controllers/ProvinsiController.js'
@@ -96,6 +99,8 @@ router.get('/kelurahan/:id', showKelurahan)
 router.get('/jenis-kelamin', getJenisKelamin)
 router.get('/status-pernikahan', getStatusPernikahan)
 router.get('/pengenal', getPengenal)
+
+router.get('/kas', allowAll, Kas.getKas)
 
 router.get('/status-kamar', allowAll, getStatusKamar)
 
@@ -176,6 +181,19 @@ router.get('/pengeluaran/:id', allowAll, Pengeluaran.showPengeluaran)
 router.post('/pengeluaran', allowAll, pengeluaranBuktiUpload, Pengeluaran.createPengeluaran)
 
 // ======================
+// KAS
+// ======================
+router.get('/kas', allowAll, Kas.getKas)
+
+// ======================
+// MUTASI KAS
+// ======================
+router.get('/mutasi-kas', allowAll, MutasiKasOperasional.getMutasiKas)
+router.get('/mutasi-kas/:id', allowAll, decodeRouteIdParam('id'), MutasiKasOperasional.showMutasiKas)
+router.post('/mutasi-kas', allowAll, MutasiKasOperasional.createMutasiKas)
+router.patch('/mutasi-kas/:id', allowAll, decodeRouteIdParam('id'), MutasiKasOperasional.updateMutasiKas)
+
+// ======================
 // LAPORAN (RESTRICTED)
 // ======================
 router.get('/laporan/arus-kas', allowReport, LaporanArusKas.getLaporanArusKas)
@@ -192,4 +210,9 @@ router.get('/laporan/piutang/export/pdf', allowReport, LaporanPiutang.exportPdfP
 
 router.get('/laporan/tagihan', allowReport, LaporanTagihan.getLaporanTagihan)
 
+// ======================
+// LAPORAN (UNRESTRICTED)
+// ======================
+router.get('/laporan/mutasi-kas-operasional', allowAll, LaporanMutasiKasOperasional.getLaporanMutasiKasOperasional)
+router.get('/laporan/mutasi-kas-operasional/export/pdf', allowAll, LaporanMutasiKasOperasional.exportPdfMutasiKasOperasional)
 export default router

@@ -104,11 +104,60 @@ export const generatePdfArusKas = async (data, filters = {}) => {
     }
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-    exportToPdf().catch((error) => {
-        console.error('Gagal membuat PDF:', error)
-        process.exit(1)
-    })
+const getPuppeteerLaunchOptions = () => {
+    const launchOptions = {
+        headless: 'new',
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-gpu',
+            '--disable-dev-shm-usage'
+        ]
+    }
+
+    if (process.platform === 'darwin') {
+        const chromePaths = [
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            '/Applications/Chromium.app/Contents/MacOS/Chromium'
+        ]
+
+        for (const chromePath of chromePaths) {
+            if (fs.existsSync(chromePath)) {
+                launchOptions.executablePath = chromePath
+                break
+            }
+        }
+    }
+
+    return launchOptions
+}
+
+const renderPdfFromHtml = async (htmlContent, logLabel = 'PDF') => {
+    let browser = null
+
+    try {
+        browser = await puppeteer.launch(getPuppeteerLaunchOptions())
+        const page = await browser.newPage()
+        await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' })
+
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            margin: {
+                top: '5mm',
+                right: '10mm',
+                bottom: '15mm',
+                left: '10mm'
+            },
+            printBackground: true
+        })
+
+        console.log(`${logLabel} generated successfully, size:`, pdfBuffer.length, 'bytes')
+        return pdfBuffer
+    } finally {
+        if (browser) {
+            await browser.close()
+        }
+    }
 }
 
 const generateArusKasHTML = (data, filters) => {
@@ -1480,4 +1529,285 @@ const generatePiutangHTML = (data, filters) => {
         </body>
         </html>
     `
+}
+
+const formatMasukKeluarCell = (value) => {
+    const num = parseFloat(value || 0)
+    if (!num) return '-'
+    return formatCurrency(num)
+}
+
+const buildPeriodeText = (filters = {}) => {
+    if (filters.startDate && filters.endDate) {
+        return `${new Date(filters.startDate).toLocaleDateString('id-ID')} - ${new Date(filters.endDate).toLocaleDateString('id-ID')}`
+    }
+    if (filters.startDate) {
+        return `Dari ${new Date(filters.startDate).toLocaleDateString('id-ID')}`
+    }
+    if (filters.endDate) {
+        return `Hingga ${new Date(filters.endDate).toLocaleDateString('id-ID')}`
+    }
+    return 'Semua Data'
+}
+
+export const generatePdfMutasiKasOperasional = async (data, filters = {}) => {
+    try {
+        console.log('Starting Puppeteer for Mutasi Kas Operasional...')
+        const htmlContent = generateMutasiKasOperasionalHTML(data, filters)
+        return await renderPdfFromHtml(htmlContent, 'Mutasi Kas Operasional PDF')
+    } catch (error) {
+        console.error('Error in generatePdfMutasiKasOperasional:', error.message)
+        console.error('Error stack:', error.stack)
+        throw error
+    }
+}
+
+const generateMutasiKasOperasionalHTML = (data, filters = {}) => {
+    const currentDate = new Date().toLocaleDateString('id-ID')
+    const rows = Array.isArray(data?.data) ? data.data : []
+    const saldoAwal = parseFloat(data?.saldoAwal || 0)
+    const saldoAkhir = parseFloat(data?.saldoAkhir ?? saldoAwal)
+
+    const totalMasuk = rows.reduce((sum, item) => sum + parseFloat(item.masuk || 0), 0)
+    const totalKeluar = rows.reduce((sum, item) => sum + parseFloat(item.keluar || 0), 0)
+
+    const dataRows = rows.length > 0
+        ? rows.map((item) => `
+        <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">${item.tanggalMutasiKas ? new Date(item.tanggalMutasiKas).toLocaleDateString('id-ID') : '-'}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${item.keterangan || '-'}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${item.properti?.nama || '-'}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: right;" class="masuk">${formatMasukKeluarCell(item.masuk)}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: right;" class="keluar">${formatMasukKeluarCell(item.keluar)}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-weight: 600;">${formatCurrency(item.saldo || 0)}</td>
+        </tr>
+    `).join('')
+        : `<tr><td colspan="6" style="border: 1px solid #ddd; padding: 12px; text-align: center; color: #6b7280;">Tidak ada mutasi pada periode ini.</td></tr>`
+
+    const filterText = buildPeriodeText(filters)
+    const kasLabel = filters.idKas || rows[0]?.idKas || 'KAS-1'
+
+    return `
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Laporan Mutasi Kas Operasional</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    font-size: 11px;
+                    line-height: 1.4;
+                    color: #333;
+                }
+                .header {
+                    display: flex;
+                    align-items: center;
+                    border-bottom: 3px solid #2c3e50;
+                    padding-bottom: 8px;
+                    margin-bottom: 10px;
+                    gap: 10px;
+                }
+                .logo { width: 90px; height: auto; object-fit: contain; }
+                .header-center h1 {
+                    font-size: 18px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                }
+                .header-center p {
+                    font-size: 10px;
+                    color: #666;
+                }
+                .report-title {
+                    text-align: center;
+                    margin: 12px 0;
+                }
+                .report-title h1 {
+                    font-size: 16px;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                }
+                .report-title p {
+                    font-size: 10px;
+                    color: #666;
+                }
+                .periode-text {
+                    margin-bottom: 10px;
+                    font-size: 11px;
+                    color: #555;
+                }
+                .summary-cards {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 8px;
+                    margin-bottom: 14px;
+                }
+                .summary-card {
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    padding: 10px;
+                    background: #f9fafb;
+                }
+                .summary-label {
+                    font-size: 9px;
+                    color: #6b7280;
+                    font-weight: 600;
+                    margin-bottom: 4px;
+                }
+                .summary-value {
+                    font-size: 12px;
+                    font-weight: 800;
+                    color: #111827;
+                }
+                .summary-value.masuk { color: #15803d; }
+                .summary-value.keluar { color: #dc2626; }
+                .summary-value.akhir { color: #1d4ed8; }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 12px;
+                }
+                thead {
+                    background-color: #f1f5f9;
+                    color: #334155;
+                }
+                thead th {
+                    border: 1px solid #cbd5e1;
+                    padding: 8px;
+                    text-align: left;
+                    font-weight: 600;
+                    font-size: 10px;
+                }
+                thead th:nth-child(n+4) { text-align: right; }
+                tbody tr:nth-child(even) { background-color: #f9f9f9; }
+                .masuk { color: #15803d; }
+                .keluar { color: #dc2626; }
+                .footer {
+                    margin-top: 16px;
+                    text-align: center;
+                    font-size: 9px;
+                    color: #999;
+                    border-top: 1px solid #ddd;
+                    padding-top: 8px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <img src="${logoSrc}" alt="Logo" class="logo" />
+                    <div class="header-center">
+                        <h1>Manajemen Kos</h1>
+                        <p>Kas Operasional: ${kasLabel}</p>
+                    </div>
+                </div>
+
+                <div class="report-title">
+                    <h1>LAPORAN MUTASI KAS OPERASIONAL</h1>
+                    <p>Tanggal Cetak: ${currentDate}</p>
+                </div>
+
+                <p class="periode-text">Periode: ${filterText}</p>
+
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <div class="summary-label">Saldo Awal</div>
+                        <div class="summary-value">${formatCurrency(saldoAwal)}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Total Masuk</div>
+                        <div class="summary-value masuk">${formatCurrency(totalMasuk)}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Total Keluar</div>
+                        <div class="summary-value keluar">${formatCurrency(totalKeluar)}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Saldo Akhir</div>
+                        <div class="summary-value akhir">${formatCurrency(saldoAkhir)}</div>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Keterangan</th>
+                            <th>Nama Properti</th>
+                            <th>Masuk</th>
+                            <th>Keluar</th>
+                            <th>Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${dataRows}
+                    </tbody>
+                </table>
+
+                <div class="footer">
+                    <p>Dokumen ini dicetak dari sistem Manajemen Kos</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `
+}
+
+const exportMutasiKasOperasionalPdfCli = async () => {
+    const args = process.argv.slice(2)
+
+    const parseArg = (key) => {
+        const inline = args.find((arg) => arg.startsWith(`--${key}=`))
+        if (inline) return inline.split('=').slice(1).join('=')
+        const index = args.indexOf(`--${key}`)
+        if (index !== -1 && args[index + 1]) return args[index + 1]
+        return undefined
+    }
+
+    const now = new Date()
+    const defaultStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+    const defaultEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+
+    const startDate = parseArg('startDate') || defaultStart
+    const endDate = parseArg('endDate') || defaultEnd
+    const idKas = parseArg('idKas') || 'KAS-1'
+
+    const { get } = await import('../models/LaporanMutasiKasOperasional.js')
+    const results = await get({
+        query: {
+            startDate,
+            endDate,
+            idKas,
+            limit: 999999
+        }
+    })
+
+    const filters = { startDate, endDate, idKas }
+    const pdfBuffer = await generatePdfMutasiKasOperasional(results, filters)
+
+    const tmpDir = path.resolve(__dirname, '../tmp')
+    if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true })
+    }
+
+    const outputPath = parseArg('output')
+        || path.join(tmpDir, `laporan-mutasi-kas-operasional-${Date.now()}.pdf`)
+
+    await fs.promises.writeFile(outputPath, pdfBuffer)
+    console.log('PDF mutasi kas operasional disimpan di:', outputPath)
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    const reportType = process.argv[2]
+    if (reportType === 'mutasi-kas-operasional') {
+        exportMutasiKasOperasionalPdfCli().catch((error) => {
+            console.error('Gagal membuat PDF mutasi kas operasional:', error)
+            process.exit(1)
+        })
+    } else {
+        console.error('Report type tidak dikenali. Gunakan: mutasi-kas-operasional')
+        process.exit(1)
+    }
 }

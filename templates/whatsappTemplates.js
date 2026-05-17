@@ -7,58 +7,54 @@ const messageTemplates = {
         // BEFORE (H-3 s/d H-1)
         // ======================
         BEFORE: [
-                ({ nama, jatuhTempo }) => `Halo ${nama} 😊
 
-📌 Pengingat Tagihan Sewa Kos  
-Tagihan Anda jatuh tempo pada ${jatuhTempo}.
+                ({ nama, jatuhTempo, dayDiff }) => `Halo ${nama} 😊
+
+📌 Pengingat Tagihan Sewa Kos
+
+Tagihan sewa kos Anda akan jatuh tempo ${dayDiff} hari lagi, yaitu pada ${jatuhTempo}.
 
 Mohon dipersiapkan pembayarannya 🙏`,
 
-                ({ nama, jatuhTempo }) => `Hai ${nama} 👋
+                ({ nama, jatuhTempo, dayDiff }) => `Hai ${nama} 👋
 
-⏰ Tagihan sewa kos Anda mendekati jatuh tempo (${jatuhTempo}).
+⏰ Tagihan sewa kos Anda akan jatuh tempo dalam ${dayDiff} hari (${jatuhTempo}).
 
 Mohon diperhatikan ya 🙏`,
 
-                ({ nama, jatuhTempo }) => `Halo ${nama} 😊
+                ({ nama, jatuhTempo, dayDiff }) => `Halo ${nama} 😊
 
-📌 Reminder  
-Tanggal jatuh tempo tagihan sewa kos Anda adalah ${jatuhTempo}.`,
+📌 Reminder
 
-                ({ nama, jatuhTempo }) => `Hai ${nama} 👋
+${dayDiff} hari lagi merupakan tanggal jatuh tempo tagihan sewa kos Anda (${jatuhTempo}).`,
 
-💰 Mohon diingat, tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.`,
+                ({ nama, jatuhTempo, dayDiff }) => `Hai ${nama} 👋
 
-                ({ nama, jatuhTempo }) => `Halo ${nama} 😊
+💰 Mohon diingat, tagihan sewa kos Anda akan jatuh tempo ${dayDiff} hari lagi (${jatuhTempo}).`,
 
-⏰ Tagihan sewa kos Anda akan segera jatuh tempo (${jatuhTempo}).`,
+                ({ nama, jatuhTempo, dayDiff }) => `Halo ${nama} 😊
 
-                ({ nama, jatuhTempo }) => `Hai ${nama} 👋
+⏳ Sisa ${dayDiff} hari lagi menuju jatuh tempo tagihan sewa kos Anda (${jatuhTempo}).`,
 
-📌 Sekadar pengingat, tagihan sewa kos Anda jatuh tempo pada ${jatuhTempo}.`,
+                ({ nama, jatuhTempo, dayDiff }) => `Hai ${nama} 👋
 
-                ({ nama, jatuhTempo }) => `Halo ${nama} 😊
+📌 Jangan lupa, tagihan sewa kos Anda akan jatuh tempo ${dayDiff} hari lagi.`,
 
-💰 Mohon dapat mempersiapkan pembayaran sebelum ${jatuhTempo}.`,
+                ({ nama, jatuhTempo, dayDiff }) => `Halo ${nama} 😊
 
-                ({ nama, jatuhTempo }) => `Hai ${nama} 👋
+💡 Pengingat pembayaran sewa kos:
+Jatuh tempo pada ${jatuhTempo} (${dayDiff} hari lagi).`,
 
-⏰ Tagihan sewa kos Anda mendekati tanggal jatuh tempo (${jatuhTempo}).`,
+                ({ nama, jatuhTempo, dayDiff }) => `Hai ${nama} 👋
 
-                ({ nama, jatuhTempo }) => `Halo ${nama} 😊
-
-📌 Jangan sampai terlewat  
-Jatuh tempo: ${jatuhTempo} 🙏`,
-
-                ({ nama, jatuhTempo }) => `Hai ${nama} 👋
-
-💰 Reminder sederhana, jatuh tempo tagihan Anda ${jatuhTempo}.`
+📅 Tagihan sewa kos Anda akan segera jatuh tempo dalam ${dayDiff} hari (${jatuhTempo}).`
         ],
 
         // ======================
         // TODAY (H)
         // ======================
         TODAY: [
+
                 ({ nama, jatuhTempo }) => `Halo ${nama},
 
 Tagihan sewa kos Anda jatuh tempo hari ini (${jatuhTempo}).
@@ -75,85 +71,175 @@ Ini adalah pengingat bahwa tagihan sewa kos Anda jatuh tempo hari ini (${jatuhTe
 
                 ({ nama, jatuhTempo }) => `Hai ${nama},
 
-Tagihan sewa kos Anda jatuh tempo hari ini.
+Mohon segera melakukan pembayaran tagihan sewa kos hari ini (${jatuhTempo}).`,
 
+                ({ nama, jatuhTempo }) => `Halo ${nama},
+
+📌 Hari ini merupakan batas pembayaran tagihan sewa kos Anda (${jatuhTempo}).`,
+
+                ({ nama, jatuhTempo }) => `Hai ${nama},
+
+⏰ Tagihan sewa kos Anda jatuh tempo hari ini.
 Mohon segera diproses.`,
 
                 ({ nama, jatuhTempo }) => `Halo ${nama},
 
-Mohon segera menyelesaikan tagihan sewa kos Anda yang jatuh tempo hari ini (${jatuhTempo}).`,
+💰 Mohon perhatian, pembayaran sewa kos Anda jatuh tempo hari ini (${jatuhTempo}).`,
 
                 ({ nama, jatuhTempo }) => `Hai ${nama},
 
-Hari ini merupakan batas pembayaran tagihan sewa kos Anda (${jatuhTempo}).`,
-
-                ({ nama, jatuhTempo }) => `Halo ${nama},
-
-Tagihan sewa kos Anda perlu diselesaikan hari ini (${jatuhTempo}).`,
-
-                ({ nama, jatuhTempo }) => `Hai ${nama},
-
-Mohon perhatian, tagihan sewa kos Anda jatuh tempo hari ini (${jatuhTempo}).`,
-
-                ({ nama, jatuhTempo }) => `Halo ${nama},
-
-Jatuh tempo tagihan sewa kos Anda adalah hari ini (${jatuhTempo}).`,
-
-                ({ nama, jatuhTempo }) => `Hai ${nama},
-
-Mohon segera melakukan pembayaran untuk tagihan hari ini.`
-],
+📅 Jatuh tempo tagihan sewa kos Anda adalah hari ini (${jatuhTempo}).`
+        ],
 
         // ======================
-        // AFTER (H+)
+        // AFTER (H+1 s/d H+3)
         // ======================
         AFTER: [
-                ({ nama, jatuhTempo }) => `Halo ${nama},
 
-Tagihan sewa kos dengan jatuh tempo ${jatuhTempo} belum kami terima.
+                ({ nama, jatuhTempo, dayDiff }) => {
 
-Mohon segera diselesaikan.`,
+                        const lateDays = Math.abs(dayDiff)
 
-                ({ nama, jatuhTempo }) => `Hai ${nama},
+                        return `Halo ${nama},
 
-Tagihan sewa kos Anda (${jatuhTempo}) masih belum dibayarkan.
+Tagihan sewa kos Anda telah melewati jatuh tempo selama ${lateDays} hari (${jatuhTempo}).
 
-Mohon segera ditindaklanjuti.`,
+Mohon segera diselesaikan.`
+                },
 
-                ({ nama, jatuhTempo }) => `Halo ${nama},
+                ({ nama, jatuhTempo, dayDiff }) => {
 
-Tagihan sewa kos Anda masih tertunda sejak ${jatuhTempo}.
+                        const lateDays = Math.abs(dayDiff)
 
-Mohon segera dilakukan pembayaran.`,
+                        return `Hai ${nama},
 
-                ({ nama, jatuhTempo }) => `Hai ${nama},
+Tagihan sewa kos Anda terlambat ${lateDays} hari dari tanggal jatuh tempo (${jatuhTempo}).
 
-Kami mencatat bahwa tagihan sewa kos Anda (${jatuhTempo}) belum terselesaikan.`,
+Mohon segera ditindaklanjuti.`
+                },
 
-                ({ nama, jatuhTempo }) => `Halo ${nama},
+                ({ nama, jatuhTempo, dayDiff }) => {
 
-Tagihan sewa kos Anda masih belum kami terima hingga saat ini (${jatuhTempo}).`,
+                        const lateDays = Math.abs(dayDiff)
 
-                ({ nama, jatuhTempo }) => `Hai ${nama},
+                        return `Halo ${nama},
 
-Tagihan sewa kos Anda masih dalam status belum dibayar (${jatuhTempo}).`,
+Tagihan sewa kos Anda masih belum dibayarkan sejak ${jatuhTempo} (${lateDays} hari yang lalu).`
+                },
 
-                ({ nama, jatuhTempo }) => `Halo ${nama},
+                ({ nama, jatuhTempo, dayDiff }) => {
 
-Tagihan sewa kos Anda telah melewati jatuh tempo (${jatuhTempo}).`,
+                        const lateDays = Math.abs(dayDiff)
 
-                ({ nama, jatuhTempo }) => `Hai ${nama},
+                        return `Hai ${nama},
 
-Kami masih menunggu pembayaran untuk tagihan sewa kos Anda (${jatuhTempo}).`,
+📌 Pembayaran sewa kos Anda telah melewati jatuh tempo selama ${lateDays} hari.`
 
-                ({ nama, jatuhTempo }) => `Halo ${nama},
+                },
 
-Mohon segera menyelesaikan tagihan sewa kos yang tertunda (${jatuhTempo}).`,
+                ({ nama, jatuhTempo, dayDiff }) => {
 
-                ({ nama, jatuhTempo }) => `Hai ${nama},
+                        const lateDays = Math.abs(dayDiff)
 
-Tagihan sewa kos Anda masih belum diselesaikan (${jatuhTempo}).`
-]
+                        return `Halo ${nama},
+
+⏰ Kami masih menunggu pembayaran tagihan sewa kos Anda yang jatuh tempo pada ${jatuhTempo} (${lateDays} hari yang lalu).`
+                },
+
+                ({ nama, jatuhTempo, dayDiff }) => {
+
+                        const lateDays = Math.abs(dayDiff)
+
+                        return `Hai ${nama},
+
+💰 Tagihan sewa kos Anda belum diselesaikan hingga ${lateDays} hari setelah jatuh tempo (${jatuhTempo}).`
+                }
+        ],
+
+        // ======================
+        // AFTER >= H+4
+        // ======================
+        // ======================
+        // AFTER >= H+4
+        // ======================
+        AFTER_OVERDUE: [
+
+                ({ nama, jatuhTempo, dayDiff, ownerPhone }) => {
+
+                        const lateDays = Math.abs(dayDiff)
+
+                        return `Halo ${nama},
+
+Tagihan sewa kos Anda telah melewati jatuh tempo selama ${lateDays} hari (${jatuhTempo}).
+
+Mohon segera mengosongkan / meninggalkan tempat kos sesuai ketentuan yang berlaku.
+
+Silahkan menghubungi pemilik melalui WhatsApp di ${ownerPhone}.`
+                },
+
+                ({ nama, jatuhTempo, dayDiff, ownerPhone }) => {
+
+                        const lateDays = Math.abs(dayDiff)
+
+                        return `Hai ${nama},
+
+Pembayaran sewa kos Anda belum diselesaikan hingga ${lateDays} hari setelah jatuh tempo (${jatuhTempo}).
+
+Mohon segera meninggalkan tempat kos.
+
+Untuk konfirmasi atau informasi lebih lanjut silahkan hubungi pemilik di ${ownerPhone}.`
+                },
+
+                ({ nama, jatuhTempo, dayDiff, ownerPhone }) => {
+
+                        const lateDays = Math.abs(dayDiff)
+
+                        return `Halo ${nama},
+
+Karena tagihan sewa kos belum diselesaikan hingga ${lateDays} hari setelah jatuh tempo (${jatuhTempo}), maka Anda dimohon segera meninggalkan tempat kos.
+
+Silahkan menghubungi pemilik melalui WhatsApp ${ownerPhone}.`
+                },
+
+                ({ nama, jatuhTempo, dayDiff, ownerPhone }) => {
+
+                        const lateDays = Math.abs(dayDiff)
+
+                        return `Hai ${nama},
+
+Tagihan sewa kos Anda telah menunggak selama ${lateDays} hari sejak tanggal jatuh tempo (${jatuhTempo}).
+
+Sesuai ketentuan yang berlaku, Anda dimohon segera meninggalkan tempat kos.
+
+Untuk koordinasi lebih lanjut silahkan hubungi pemilik di ${ownerPhone}.`
+                },
+
+                ({ nama, jatuhTempo, dayDiff, ownerPhone }) => {
+
+                        const lateDays = Math.abs(dayDiff)
+
+                        return `Halo ${nama},
+
+Kami belum menerima pembayaran tagihan sewa kos Anda hingga ${lateDays} hari setelah jatuh tempo (${jatuhTempo}).
+
+Mohon segera mengosongkan kamar kos yang ditempati.
+
+Silahkan menghubungi pemilik melalui nomor WhatsApp ${ownerPhone}.`
+                },
+
+                ({ nama, jatuhTempo, dayDiff, ownerPhone }) => {
+
+                        const lateDays = Math.abs(dayDiff)
+
+                        return `Hai ${nama},
+
+📌 Tagihan sewa kos Anda telah melewati batas toleransi keterlambatan pembayaran (${lateDays} hari).
+
+Mohon segera meninggalkan tempat kos.
+
+Jika terdapat kendala, silahkan hubungi pemilik di ${ownerPhone}.`
+                }
+        ]
 }
 
 // ======================
@@ -162,32 +248,87 @@ Tagihan sewa kos Anda masih belum diselesaikan (${jatuhTempo}).`
 let lastIndexMap = {
         BEFORE: -1,
         TODAY: -1,
-        AFTER: -1
+        AFTER: -1,
+        AFTER_OVERDUE: -1
 }
 
 // ======================
 // GET RANDOM TEMPLATE
 // ======================
-export const getRandomTemplate = ({ nama, jatuhTempo, category }) => {
+export const getRandomTemplate = ({
+        nama,
+        jatuhTempo,
+        category,
+        dayDiff,
+        ownerPhone
+}) => {
 
-        // fallback kalau category undefined
-        const selectedCategory = category || 'BEFORE'
+        let selectedCategory = category || 'BEFORE'
+
+        // ======================
+        // OVERDUE >= H+4
+        // ======================
+        if (
+                selectedCategory === 'AFTER' &&
+                Math.abs(dayDiff) >= 4
+        ) {
+                selectedCategory = 'AFTER_OVERDUE'
+        }
 
         const templates = messageTemplates[selectedCategory]
 
-        // safety fallback
+        // ======================
+        // SAFETY FALLBACK
+        // ======================
         if (!templates || templates.length === 0) {
-                console.warn(`Template untuk category ${selectedCategory} tidak ditemukan`)
-                return `Halo ${nama}, tagihan Anda jatuh tempo pada ${jatuhTempo}.`
+
+                if (selectedCategory === 'AFTER_OVERDUE') {
+
+                        const lateDays = Math.abs(dayDiff)
+
+                        return `Halo ${nama},
+
+Tagihan Anda telah melewati jatuh tempo ${lateDays} hari (${jatuhTempo}).
+
+Mohon segera meninggalkan tempat kos.`
+                }
+
+                if (selectedCategory === 'AFTER') {
+
+                        const lateDays = Math.abs(dayDiff)
+
+                        return `Halo ${nama},
+
+Tagihan Anda telah melewati jatuh tempo ${lateDays} hari (${jatuhTempo}).`
+                }
+
+                if (selectedCategory === 'BEFORE') {
+
+                        return `Halo ${nama},
+
+Tagihan Anda akan jatuh tempo ${dayDiff} hari lagi (${jatuhTempo}).`
+                }
+
+                return `Halo ${nama},
+
+Tagihan Anda jatuh tempo hari ini (${jatuhTempo}).`
         }
 
         let randomIndex
 
         do {
                 randomIndex = Math.floor(Math.random() * templates.length)
-        } while (randomIndex === lastIndexMap[selectedCategory])
+        } while (
+                templates.length > 1 &&
+                randomIndex === lastIndexMap[selectedCategory]
+        )
 
         lastIndexMap[selectedCategory] = randomIndex
 
-        return templates[randomIndex]({ nama, jatuhTempo })
+        return templates[randomIndex]({
+                nama,
+                jatuhTempo,
+                dayDiff,
+                ownerPhone
+        })
 }
