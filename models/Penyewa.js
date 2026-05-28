@@ -16,7 +16,10 @@ export const penyewa = database.define('penyewa', {
     no_telp: {
         type: DataTypes.STRING
     },
-    email: {
+    nama_orang_tua: {
+        type: DataTypes.STRING
+    },
+    no_telp_orang_tua: {
         type: DataTypes.STRING
     },
     id_pengenal: {
@@ -28,19 +31,13 @@ export const penyewa = database.define('penyewa', {
     id_jenis_kelamin: {
         type: DataTypes.STRING
     },
-    id_status_pernikahan: {
-        type: DataTypes.STRING
-    },
-    id_profesi: {
+    profesi: {
         type: DataTypes.STRING
     },
     nama_institusi: {
         type: DataTypes.STRING
     },
     alamat_institusi: {
-        type: DataTypes.STRING
-    },
-    no_telp_institusi: {
         type: DataTypes.STRING
     },
     temp_key: {
@@ -74,18 +71,15 @@ export const get = async (req) => {
                 p.nama,
                 p.alamat,
                 p.no_telp,
-                p.email,
                 p.id_pengenal,
                 p.no_pengenal,
                 p.id_jenis_kelamin,
+                p.nama_orang_tua,
+                p.no_telp_orang_tua,
                 jk.nama AS jenis_kelamin_nama,
-                p.id_status_pernikahan,
-                sp.nama AS status_pernikahan_nama,
-                p.id_profesi,
-                pr.nama AS profesi_nama,
+                p.profesi,
                 p.nama_institusi,
                 p.alamat_institusi,
-                p.no_telp_institusi,
                 p.dokumen_pengenal
         `
 
@@ -93,8 +87,6 @@ export const get = async (req) => {
             FROM KOS.penyewa p
             LEFT JOIN KOS.pengenal pen ON p.id_pengenal = pen.id
             LEFT JOIN KOS.jenis_kelamin jk ON p.id_jenis_kelamin = jk.id
-            LEFT JOIN KOS.status_pernikahan sp ON p.id_status_pernikahan = sp.id
-            LEFT JOIN KOS.profesi pr ON p.id_profesi = pr.id
         `
 
         const sqlOrder = ` ORDER BY p.nama DESC `
@@ -110,11 +102,9 @@ export const get = async (req) => {
             nama, 
             alamat,
             no_telp,
-            email,
             id_pengenal,
             no_pengenal,
-            id_jenis_kelamin,
-            id_status_pernikahan
+            id_jenis_kelamin
         } = req.query
 
         if (nama) {
@@ -132,11 +122,6 @@ export const get = async (req) => {
             replacements.push(`%${no_telp}%`)
         }
 
-        if (email) {
-            filters.push('p.email ILIKE ?')
-            replacements.push(`%${email}%`)
-        }
-
         if (id_pengenal) {
             filters.push('p.id_pengenal = ?')
             replacements.push(id_pengenal)
@@ -150,11 +135,6 @@ export const get = async (req) => {
         if (id_jenis_kelamin) {
             filters.push('p.id_jenis_kelamin = ?')
             replacements.push(id_jenis_kelamin)
-        }
-
-        if (id_status_pernikahan) {
-            filters.push('p.id_status_pernikahan = ?')
-            replacements.push(id_status_pernikahan)
         }
 
         const sqlWhere = filters.length > 0 
@@ -176,7 +156,6 @@ export const get = async (req) => {
             nama: item.nama,
             alamat: item.alamat,
             noTelp: item.no_telp,
-            email: item.email,
             pengenal: {
                 id: item.id_pengenal,
                 noPengenal: item.no_pengenal
@@ -185,18 +164,12 @@ export const get = async (req) => {
                 id: item.id_jenis_kelamin,
                 nama: item.jenis_kelamin_nama
             },
-            statusPernikahan: {
-                id: item.id_status_pernikahan,
-                nama: item.status_pernikahan_nama
-            },
-            profesi: {
-                id: item.id_profesi,
-                nama: item.profesi_nama
-            },
+            namaOrangTua: item.nama_orang_tua,
+            noTelpOrangTua: item.no_telp_orang_tua,
+            profesi: item.profesi,
             institusi: {
                 nama: item.nama_institusi,
-                alamat: item.alamat_institusi,
-                noTelp: item.no_telp_institusi
+                alamat: item.alamat_institusi
             },
             dokumenPengenal: privateFileUrl(item.dokumen_pengenal)
         }))
@@ -238,18 +211,15 @@ export const show = async (id) => {
                 p.nama,
                 p.alamat,
                 p.no_telp,
-                p.email,
                 p.id_pengenal,
                 p.no_pengenal,
                 p.id_jenis_kelamin,
+                p.nama_orang_tua,
+                p.no_telp_orang_tua,
                 jk.nama AS jenis_kelamin_nama,
-                p.id_status_pernikahan,
-                sp.nama AS status_pernikahan_nama,
-                p.id_profesi,
-                pr.nama AS profesi_nama,
+                p.profesi,
                 p.nama_institusi,
                 p.alamat_institusi,
-                p.no_telp_institusi,
                 p.dokumen_pengenal
         `
 
@@ -257,8 +227,6 @@ export const show = async (id) => {
             FROM KOS.penyewa p
             LEFT JOIN KOS.pengenal pen ON p.id_pengenal = pen.id
             LEFT JOIN KOS.jenis_kelamin jk ON p.id_jenis_kelamin = jk.id
-            LEFT JOIN KOS.status_pernikahan sp ON p.id_status_pernikahan = sp.id
-            LEFT JOIN KOS.profesi pr ON p.id_profesi = pr.id
         `
 
         const sqlWhere = `
@@ -293,7 +261,6 @@ export const show = async (id) => {
             nama: item.nama,
             alamat: item.alamat,
             noTelp: item.no_telp,
-            email: item.email,
             pengenal: {
                 id: item.id_pengenal,
                 noPengenal: item.no_pengenal
@@ -302,18 +269,12 @@ export const show = async (id) => {
                 id: item.id_jenis_kelamin,
                 nama: item.jenis_kelamin_nama
             },
-            statusPernikahan: {
-                id: item.id_status_pernikahan,
-                nama: item.status_pernikahan_nama
-            },
-            profesi: {
-                id: item.id_profesi,
-                nama: item.profesi_nama
-            },
+            namaOrangTua: item.nama_orang_tua,
+            noTelpOrangTua: item.no_telp_orang_tua,
+            profesi: item.profesi,
             institusi: {
                 nama: item.nama_institusi,
-                alamat: item.alamat_institusi,
-                noTelp: item.no_telp_institusi
+                alamat: item.alamat_institusi
             },
             dokumenPengenal: privateFileUrl(item.dokumen_pengenal)
         }

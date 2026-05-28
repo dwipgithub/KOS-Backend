@@ -3,7 +3,7 @@ import express from 'express'
 // ======================
 // AUTH CONTROLLER
 // ======================
-import { createPengguna, changePassword, login, logout } from '../controllers/PenggunaController.js'
+import { createPengguna, changePassword, getPengguna, showPengguna, login, logout } from '../controllers/PenggunaController.js'
 import { refreshToken } from '../controllers/RefreshToken.js'
 
 // ======================
@@ -26,6 +26,7 @@ import * as Pembayaran from '../controllers/PembayaranController.js'
 import * as Pengeluaran from '../controllers/PengeluaranController.js'
 import * as Kas from '../controllers/KasController.js'
 import * as MutasiKasOperasional from '../controllers/MutasiKasOperasionalController.js'
+import * as Pemasukan from '../controllers/PemasukanController.js'
 
 // laporan
 import * as LaporanArusKas from '../controllers/LaporanArusKasController.js'
@@ -47,6 +48,12 @@ import { getStatusKamar } from '../controllers/StatusKamarController.js'
 import { getProfesi, showProfesi, createProfesi } from '../controllers/ProfesiController.js'
 import { getInstitusi, showInstitusi, createInstitusi } from '../controllers/InstitusiController.js'
 import { getKategoriPengeluaran } from '../controllers/KategoriPengeluaranController.js'
+import { getDeskripsiTagihan  } from "../controllers/DeskripsiTagihanController.js"
+
+
+// ======================
+// KELUAR
+// ======================
 import { createKeluar } from '../controllers/KeluarController.js'
 
 // file private
@@ -104,9 +111,13 @@ router.get('/kas', allowAll, Kas.getKas)
 
 router.get('/status-kamar', allowAll, getStatusKamar)
 
+router.get('/deskripsi-tagihan', getDeskripsiTagihan)
+
 // ======================
 // PENGGUNA
 // ======================
+router.get('/pengguna', allowAll, getPengguna)
+router.get('/pengguna/:id', allowAll, showPengguna)
 router.post('/pengguna', allowAll, createPengguna)
 router.patch('/pengguna/change-password', allowAll, changePassword)
 
@@ -158,6 +169,7 @@ router.post('/sewa', allowAll, decodeBodyFields(["idKamar"]), Sewa.createSewa)
 router.get('/tagihan', allowAll, Tagihan.getTagihan)
 router.get('/tagihan/:id', allowAll, Tagihan.showTagihan)
 router.post('/tagihan', allowAll, Tagihan.createTagihan)
+router.delete('/tagihan/:id', allowAll, Tagihan.destroyTagihan)
 
 // ======================
 // PEMBAYARAN
@@ -179,6 +191,14 @@ router.get('/kategori-pengeluaran', allowAll, getKategoriPengeluaran)
 router.get('/pengeluaran', allowAll, Pengeluaran.getPengeluaran)
 router.get('/pengeluaran/:id', allowAll, Pengeluaran.showPengeluaran)
 router.post('/pengeluaran', allowAll, pengeluaranBuktiUpload, Pengeluaran.createPengeluaran)
+router.delete('/pengeluaran/:id', allowAll, Pengeluaran.destroyPengeluaran)
+
+// ======================
+// PEMASUKAN
+// ======================
+router.post('/pemasukan', allowAll, Pemasukan.createPemasukan)
+router.delete('/pemasukan/:id', allowAll, Pemasukan.destroyPemasukan)
+
 
 // ======================
 // KAS

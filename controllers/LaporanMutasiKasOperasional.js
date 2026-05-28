@@ -9,6 +9,7 @@ export const getLaporanMutasiKasOperasional = async(req, res) => {
         const schema = Joi.object({
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
+            penggunaId: Joi.number().integer().required()
         })
 
         const { error } = schema.validate(req.query)

@@ -1,22 +1,19 @@
 import { DataTypes, QueryTypes } from "sequelize"
 import { database } from "../config/Database.js"
 
-export const mutasi_kas_operasional = database.define('mutasi_kas_operasional', {
+export const pemasukan = database.define('pemasukan', {
     id: {
         type: DataTypes.STRING,
         primaryKey: true
     },
-    tipe: {
+    keterangan: {
         type: DataTypes.STRING
-    },
-    tanggal_mutasi_kas: {
-        type: DataTypes.DATE
     },
     total: {
         type: DataTypes.DOUBLE
     },
-    keterangan: {
-        type: DataTypes.STRING
+    tanggal_pemasukan: {
+        type: DataTypes.DATE
     },
     temp_key: {
         type: DataTypes.STRING
@@ -51,20 +48,19 @@ export const get = async (req) => {
         // ======================
         const sqlSelect = `
             SELECT
-                mk.id,
-                mk.tipe,
-                mk.tanggal_mutasi_kas,
-                mk.total,
-                mk.keterangan,
-                mk.temp_key
+                p.id,
+                p.keterangan,
+                p.total,
+                p.tanggal_pemasukan,
+                p.temp_key
         `
 
         const sqlFrom = `
-            FROM KOS.mutasi_kas_operasional mk
+            FROM KOS.pemasukan p
         `
 
         const sqlOrder = `
-            ORDER BY mk.tanggal_mutasi_kas DESC
+            ORDER BY p.tanggal_pemasukan DESC
         `
 
         const sqlLimit = `
@@ -78,20 +74,14 @@ export const get = async (req) => {
         const replacements = []
 
         const {
-            tipe,
             startDate,
             penggunaId,
             endDate,
             keterangan
         } = req.query
 
-        if (tipe) {
-            filters.push('mk.tipe = ?')
-            replacements.push(tipe)
-        }
-
         if (keterangan) {
-            filters.push('mk.keterangan LIKE ?')
+            filters.push('p.keterangan LIKE ?')
             replacements.push(`%${keterangan}%`)
         }
 
@@ -99,13 +89,13 @@ export const get = async (req) => {
         // FILTER PERIODE
         // ======================
         if (startDate && endDate) {
-            filters.push('DATE(mk.tanggal_mutasi_kas) BETWEEN ? AND ?')
+            filters.push('DATE(p.tanggal_pemasukan) BETWEEN ? AND ?')
             replacements.push(startDate, endDate)
         } else if (startDate) {
-            filters.push('DATE(mk.tanggal_mutasi_kas) >= ?')
+            filters.push('DATE(mk.tanggal_pemasukan) >= ?')
             replacements.push(startDate)
         } else if (endDate) {
-            filters.push('DATE(mk.tanggal_mutasi_kas) <= ?')
+            filters.push('DATE(mk.tanggal_pemasukan) <= ?')
             replacements.push(endDate)
         }
 
@@ -113,7 +103,7 @@ export const get = async (req) => {
         // FILTER PENGGUNA
         // ======================
         if (penggunaId) {
-            filters.push("mk.pengguna_id = ?")
+            filters.push("mp.pengguna_id = ?")
             replacements.push(penggunaId)
         }
 
@@ -139,8 +129,7 @@ export const get = async (req) => {
 
         const formattedData = rows.map(item => ({
             id: item.id,
-            tipe: item.tipe,
-            tanggalMutasiKas: item.tanggal_mutasi_kas,
+            tanggalPemasukan: item.tanggal_pemasukan,
             total: item.total,
             keterangan: item.keterangan,
             tempKey: item.temp_key
@@ -150,8 +139,8 @@ export const get = async (req) => {
         // QUERY COUNT
         // ======================
         const sqlCount = `
-            SELECT COUNT(mk.id) AS total_row_count
-            FROM KOS.mutasi_kas_operasional mk
+            SELECT COUNT(p.id) AS total_row_count
+            FROM KOS.pemasukan p
             ${sqlWhere}
         `
 
@@ -183,16 +172,15 @@ export const show = async (id) => {
         // ======================
         const sqlSelect = `
             SELECT
-                mk.id,
-                mk.tipe,
-                mk.tanggal_mutasi_kas,
-                mk.total,
-                mk.keterangan,
-                mk.temp_key
+                p.id,
+                p.tanggal_pemasukan,
+                p.total,
+                p.keterangan,
+                p.temp_key
         `
 
         const sqlFrom = `
-            FROM KOS.mutasi_kas_operasional mk
+            FROM KOS.pemasukan p
         `
 
         const sqlWhere = `
@@ -227,12 +215,33 @@ export const show = async (id) => {
         // ======================
         return {
             id: item.id,
-            tipe: item.tipe,
-            tanggalMutasiKas: item.tanggal_mutasi_kas,
+            tanggalPemasukan: item.tanggal_pemasukan,
             total: item.total,
             keterangan: item.keterangan,
             tempKey: item.temp_key
         }
+
+    } catch (error) {
+        throw error
+    }
+}
+
+export const destroy = async (id) => {
+    try {
+
+        const sql = `
+            UPDATE pemasukan
+            SET 
+                tanggal_dihapus = NOW()
+            WHERE id = ?
+        `
+
+        const result = await database.query(sql, {
+            type: QueryTypes.UPDATE,
+            replacements: [id]
+        })
+
+        return result
 
     } catch (error) {
         throw error

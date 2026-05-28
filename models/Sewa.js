@@ -24,20 +24,8 @@ export const sewa = database.define('sewa', {
     id_durasi: {
         type: DataTypes.STRING
     },
-    harga_per_durasi: {
-        type: DataTypes.DOUBLE
-    },
-    jumlah_durasi: {
-        type: DataTypes.INTEGER
-    },
-    uang_muka: {
-        type: DataTypes.DOUBLE
-    },
     catatan: {
         type: DataTypes.TEXT
-    },
-    file_dokumen: {
-        type: DataTypes.STRING
     },
     temp_key: {
         type: DataTypes.STRING
@@ -53,29 +41,38 @@ export const sewa = database.define('sewa', {
 
 export const get = async (req) => {
     try {
+
         const page = parseInt(req.query.page) || 1
-        const limit = parseInt(req.query.limit) > 100 ? 100 : parseInt(req.query.limit) || 100
+        const limit =
+            parseInt(req.query.limit) > 100
+                ? 100
+                : parseInt(req.query.limit) || 100
+
         const offset = (page - 1) * limit
 
         // ======================
         // SELECT SEWA
         // ======================
         const sqlSelect = `
-            SELECT 
-            s.id,
-            s.id_kamar,
-            k.nama AS kamar_nama,
-            s.id_penyewa,
-            p.nama AS penyewa_nama,
-            s.tanggal_masuk,
-            s.tanggal_keluar,
-            s.id_durasi,
-            s.uang_muka,
-            d.nama AS durasi_nama,
-            s.id_status_sewa,
-            ss.nama AS status_sewa_nama,
-            s.harga_per_durasi,
-            s.catatan
+            SELECT
+                s.id,
+
+                s.id_kamar,
+                k.nama AS kamar_nama,
+
+                s.id_penyewa,
+                p.nama AS penyewa_nama,
+
+                s.tanggal_masuk,
+                s.tanggal_keluar,
+
+                s.id_durasi,
+                d.nama AS durasi_nama,
+
+                s.id_status_sewa,
+                ss.nama AS status_sewa_nama,
+
+                s.catatan
         `
 
         const sqlFrom = `
@@ -86,8 +83,13 @@ export const get = async (req) => {
             JOIN status_sewa ss ON s.id_status_sewa = ss.id
         `
 
-        const sqlOrder = ` ORDER BY s.tanggal_dibuat DESC `
-        const sqlLimit = ` LIMIT ? OFFSET ? `
+        const sqlOrder = `
+            ORDER BY s.tanggal_dibuat DESC
+        `
+
+        const sqlLimit = `
+            LIMIT ? OFFSET ?
+        `
 
         // ======================
         // FILTER
@@ -95,7 +97,12 @@ export const get = async (req) => {
         const filters = []
         const replacements = []
 
-        const { idKamar, idPenyewa, tanggalMasuk, tanggalKeluar } = req.query
+        const {
+            idKamar,
+            idPenyewa,
+            tanggalMasuk,
+            tanggalKeluar
+        } = req.query
 
         if (idKamar) {
             filters.push('s.id_kamar = ?')
@@ -117,8 +124,17 @@ export const get = async (req) => {
             replacements.push(tanggalKeluar)
         }
 
-        const sqlWhere = filters.length > 0 ? " WHERE " + filters.join(" AND ") : ""
-        const sql = sqlSelect + sqlFrom + sqlWhere + sqlOrder + sqlLimit
+        const sqlWhere =
+            filters.length > 0
+                ? " WHERE " + filters.join(" AND ")
+                : ""
+
+        const sql =
+            sqlSelect +
+            sqlFrom +
+            sqlWhere +
+            sqlOrder +
+            sqlLimit
 
         // ======================
         // QUERY DATA SEWA
@@ -135,14 +151,26 @@ export const get = async (req) => {
             rows.map(async (item) => {
 
                 // ======================
-                // TAGIHAN (by id_sewa)
+                // TAGIHAN
                 // ======================
                 const tagihan = await database.query(`
-                    SELECT 
+                    SELECT
                         t.id,
+                        t.id_deskripsi_tagihan,
+
+                        t.harga_satuan,
+                        t.jumlah,
+
+                        t.diskon_persen,
+                        t.diskon_nominal,
+
+                        t.total,
+
                         t.tanggal_tagihan,
-                        t.total as total_tagihan,
+                        t.tanggal_jatuh_tempo,
+
                         t.id_status_tagihan
+
                     FROM tagihan t
                     WHERE t.id_sewa = ?
                     ORDER BY t.tanggal_tagihan DESC
@@ -152,16 +180,18 @@ export const get = async (req) => {
                 })
 
                 // ======================
-                // PENGELUARAN (by id_kamar)
+                // PENGELUARAN
                 // ======================
                 const pengeluaran = await database.query(`
-                    SELECT 
+                    SELECT
                         p.id,
                         p.tanggal_pengeluaran,
-                        p.nama as nama_pengeluaran,
-                        p.total as total_pengeluaran
+                        p.nama AS nama_pengeluaran,
+                        p.total AS total_pengeluaran
+
                     FROM pengeluaran p
                     WHERE p.id_kamar = ?
+
                     ORDER BY p.tanggal_pengeluaran DESC
                 `, {
                     type: QueryTypes.SELECT,
@@ -170,30 +200,35 @@ export const get = async (req) => {
 
                 return {
                     id: item.id,
+
                     kamar: {
                         id: item.id_kamar,
                         nama: item.kamar_nama
                     },
+
                     penyewa: {
                         id: item.id_penyewa,
                         nama: item.penyewa_nama
                     },
+
                     tanggalMasuk: item.tanggal_masuk,
                     tanggalKeluar: item.tanggal_keluar,
+
                     durasi: {
                         id: item.id_durasi,
                         nama: item.durasi_nama
                     },
+
                     statusSewa: {
                         id: item.id_status_sewa,
                         nama: item.status_sewa_nama
                     },
-                    harga: item.harga,
+
                     catatan: item.catatan,
 
-                    // ✅ tambahan
-                    tagihan: tagihan,
-                    pengeluaran: pengeluaran
+                    tagihan,
+
+                    pengeluaran
                 }
             })
         )
@@ -202,20 +237,20 @@ export const get = async (req) => {
         // COUNT
         // ======================
         const sqlCount = `
-            SELECT COUNT(*) as total_row_count
+            SELECT COUNT(*) AS total_row_count
             FROM sewa s
             ${sqlWhere}
         `
 
         const countResult = await database.query(sqlCount, {
             type: QueryTypes.SELECT,
-            replacements: replacements
+            replacements
         })
 
         return {
             totalRowCount: countResult[0].total_row_count,
-            page: page,
-            limit: limit,
+            page,
+            limit,
             data: formattedData
         }
 
@@ -226,26 +261,30 @@ export const get = async (req) => {
 
 export const show = async (id) => {
     try {
+
         // ======================
         // QUERY SEWA
         // ======================
         const sqlSelect = `
-            SELECT 
-            s.id,
-            s.id_kamar,
-            k.nama AS kamar_nama,
-            s.id_penyewa,
-            p.nama AS penyewa_nama,
-            s.tanggal_masuk,
-            s.tanggal_keluar,
-            s.id_durasi,
-            s.jumlah_durasi,
-            d.nama AS durasi_nama,
-            s.id_status_sewa,
-            ss.nama AS status_sewa_nama,
-            s.harga_per_durasi,
-            s.uang_muka,
-            s.catatan
+            SELECT
+                s.id,
+
+                s.id_kamar,
+                k.nama AS kamar_nama,
+
+                s.id_penyewa,
+                p.nama AS penyewa_nama,
+
+                s.tanggal_masuk,
+                s.tanggal_keluar,
+
+                s.id_durasi,
+                d.nama AS durasi_nama,
+
+                s.id_status_sewa,
+                ss.nama AS status_sewa_nama,
+
+                s.catatan
         `
 
         const sqlFrom = `
@@ -256,8 +295,15 @@ export const show = async (id) => {
             JOIN status_sewa ss ON s.id_status_sewa = ss.id
         `
 
-        const sqlWhere = ` WHERE s.id = ? LIMIT 1 `
-        const sql = sqlSelect + sqlFrom + sqlWhere
+        const sqlWhere = `
+            WHERE s.id = ?
+            LIMIT 1
+        `
+
+        const sql =
+            sqlSelect +
+            sqlFrom +
+            sqlWhere
 
         const result = await database.query(sql, {
             type: QueryTypes.SELECT,
@@ -274,13 +320,26 @@ export const show = async (id) => {
         // QUERY TAGIHAN
         // ======================
         const tagihanResult = await database.query(`
-            SELECT 
+            SELECT
                 t.id,
-                t.tanggal_tagihan,
+                t.id_deskripsi_tagihan,
+
+                t.harga_satuan,
+                t.jumlah,
+
+                t.diskon_persen,
+                t.diskon_nominal,
+
                 t.total,
+
+                t.tanggal_tagihan,
+                t.tanggal_jatuh_tempo,
+
                 t.id_status_tagihan
+
             FROM tagihan t
             WHERE t.id_sewa = ?
+
             ORDER BY t.tanggal_tagihan DESC
         `, {
             type: QueryTypes.SELECT,
@@ -291,13 +350,15 @@ export const show = async (id) => {
         // QUERY PENGELUARAN
         // ======================
         const pengeluaranResult = await database.query(`
-            SELECT 
+            SELECT
                 p.id,
                 p.nama,
                 p.tanggal_pengeluaran,
                 p.total
+
             FROM pengeluaran p
             WHERE p.id_kamar = ?
+
             ORDER BY p.tanggal_pengeluaran DESC
         `, {
             type: QueryTypes.SELECT,
@@ -309,34 +370,47 @@ export const show = async (id) => {
         // ======================
         return {
             id: item.id,
+
             kamar: {
                 id: item.id_kamar,
                 nama: item.kamar_nama
             },
+
             penyewa: {
                 id: item.id_penyewa,
                 nama: item.penyewa_nama
             },
+
             tanggalMasuk: item.tanggal_masuk,
             tanggalKeluar: item.tanggal_keluar,
+
             durasi: {
                 id: item.id_durasi,
                 nama: item.durasi_nama
             },
-            jumlahDurasi: item.jumlah_durasi,
+
             statusSewa: {
                 id: item.id_status_sewa,
                 nama: item.status_sewa_nama
             },
-            hargaPerDurasi: item.harga_per_durasi,
-            uangMuka: item.uang_muka,
+
             catatan: item.catatan,
 
-            // ✅ TAMBAHAN
             tagihan: tagihanResult.map(t => ({
                 id: t.id,
-                tanggal: t.tanggal_tagihan,
+                kode: t.id_deskripsi_tagihan,
+
+                hargaSatuan: t.harga_satuan,
+                jumlah: t.jumlah,
+
+                diskonPersen: t.diskon_persen,
+                diskonNominal: t.diskon_nominal,
+
                 total: t.total,
+
+                tanggalTagihan: t.tanggal_tagihan,
+                tanggalJatuhTempo: t.tanggal_jatuh_tempo,
+
                 status: t.id_status_tagihan
             })),
 

@@ -3,10 +3,10 @@ export const rolePermissions = {
         properti: true,
         kamar: true,
         penyewa: true,
-        pengeluaran: true,
+        pengeluaran: false,
         change_password: true,
         tambah_pengguna: true,
-        kas_operasional: true,
+        kas_operasional: false,
         laporan: {
             arus_kas: true,
             laba_rugi: true,
@@ -19,10 +19,10 @@ export const rolePermissions = {
         properti: true,
         kamar: true,
         penyewa: true,
-        pengeluaran: true,
+        pengeluaran: false,
         change_password: true,
         tambah_pengguna: true,
-        kas_operasional: true,
+        kas_operasional: false,
         laporan: {
             arus_kas: true,
             laba_rugi: true,
@@ -32,13 +32,13 @@ export const rolePermissions = {
         }
     },
     OPERATOR: {
-        properti: true,
+        properti: false,
         kamar: true,
         penyewa: true,
-        pengeluaran: true,
+        pengeluaran: false,
         change_password: true,
-        tambah_pengguna: true,
-        kas_operasional: true,
+        tambah_pengguna: false,
+        kas_operasional: false,
         laporan: {
             arus_kas: false,
             laba_rugi: false,

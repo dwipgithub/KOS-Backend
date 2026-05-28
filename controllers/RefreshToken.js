@@ -12,7 +12,7 @@ export const refreshToken = (req, res) => {
         return
     }
     pengguna.findAll({
-        attributes: ['id', 'nama', 'peran', 'email'],
+        attributes: ['id', 'nama', 'peran', 'email', 'properti_id'],
         where: {
             refresh_token: refreshToken
         }
@@ -31,7 +31,8 @@ export const refreshToken = (req, res) => {
             id: results[0].id,
             nama: results[0].nama,
             email: results[0].email,
-            peran: results[0].peran
+            peran: results[0].peran,
+            properti_id: results[0].properti_id
         }
         
         jsonWebToken.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, jwtRes) => {

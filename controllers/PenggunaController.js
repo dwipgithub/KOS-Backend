@@ -1,8 +1,10 @@
-import { pengguna } from '../models/Pengguna.js'
-import bcrypt from 'bcrypt'
-import jsonWebToken from 'jsonwebtoken'
-import Joi from 'joi'
 import { rolePermissions } from '../config/Permissions.js'
+import { pengguna, get, show } from '../models/Pengguna.js'
+import paginationDB from '../config/PaginationDB.js'
+import * as response from '../helpers/response.js'
+import jsonWebToken from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
+import Joi from 'joi'
 
 // ======================
 // CREATE PENGGUNA
@@ -77,6 +79,56 @@ export const createPengguna = async (req, res) => {
 }
 
 // ======================
+// GET PENGGUNA
+// ======================
+
+export const getPengguna = async (req, res) => {
+    try {
+        const results = await get(req)
+
+        const paginationDBObject = new paginationDB(
+            results.totalRowCount,
+            results.page,
+            results.limit,
+            results.data
+        )
+
+        const pagination = paginationDBObject.getRemarkPagination()
+        
+        const message = results.data.length
+            ? 'data found'
+            : 'no data found'
+
+        return response.success(
+            res,
+            results.data,
+            message,
+            pagination
+        )
+    } catch (err) {
+        return response.error(res, err, 422)
+    }
+}
+
+// ======================
+// SHOW PENGGUNA
+// ======================
+
+export const showPengguna = async (req, res) => {
+    try {
+        const result = await show(req.params.id)
+
+        if (!result) {
+            return response.notFound(res)
+        }
+
+        return response.success(res, result, "data found")
+    } catch (err) {
+        return response.error(res, err)
+    }
+}
+
+// ======================
 // LOGIN
 // ======================
 export const login = async (req, res) => {
@@ -96,7 +148,7 @@ export const login = async (req, res) => {
 
     try {
         const user = await pengguna.findOne({
-            attributes: ['id', 'nama', 'email', 'password', 'peran'],
+            attributes: ['id', 'nama', 'email', 'password', 'peran', 'properti_id'],
             where: { email: req.body.email }
         })
 
@@ -123,7 +175,8 @@ export const login = async (req, res) => {
             id: user.id,
             nama: user.nama,
             email: user.email,
-            peran: user.peran
+            peran: user.peran,
+            properti_id: user.properti_id
         }
 
         const accessToken = jsonWebToken.sign(

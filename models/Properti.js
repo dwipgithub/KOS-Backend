@@ -127,6 +127,14 @@ export const get = async (req) => {
             replacements.push(id_kelurahan)
         }
 
+        // ======================
+        // FILTER BASED ON LOGIN USER
+        // ======================
+        if (req.user.properti_id) {
+            filters.push("p.id = ?")
+            replacements.push(req.user.properti_id)
+        }
+
         const sqlWhere = filters.length > 0 ? " WHERE " + filters.join(" AND ") : ""
 
         const sql = sqlSelect + sqlFrom + sqlWhere + sqlOrder + sqlLimit

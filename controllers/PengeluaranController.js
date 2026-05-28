@@ -1,4 +1,4 @@
-import { pengeluaran, get, show } from "../models/Pengeluaran.js"
+import { pengeluaran, get, show, destroy } from "../models/Pengeluaran.js"
 import paginationDB from '../config/PaginationDB.js'
 import * as response from '../helpers/response.js'
 import { v4 as uuidv4 } from 'uuid'
@@ -70,14 +70,15 @@ export const createPengeluaran = async (req, res) => {
             await pengeluaran.create({
                 id_properti: req.body.idProperti,
                 id_kamar: req.body.idKamar || null,
-                id_kas: req.body.idKas,
+                id_kas: req.body.idKas || null,
                 id_kategori_pengeluaran: req.body.idKategoriPengeluaran,
                 tanggal_pengeluaran: req.body.tanggalPengeluaran,
                 nama: req.body.nama,
                 total: req.body.total,
                 catatan: req.body.catatan,
                 bukti_pengeluaran: dokumenPath,
-                temp_key: uniqueKey
+                temp_key: uniqueKey,
+                pengguna_id: req.user.id
             })
         } catch (createErr) {
             if (req.file?.path) {
@@ -150,5 +151,33 @@ export const updatePengeluaran = async (req, res) => {
 
     } catch (err) {
         return response.error(res, err, 500)
+    }
+}
+
+export const destroyPengeluaran = async (req, res) => {
+    try {
+
+        const result = await destroy(req.params.id)
+
+        if (!result || result[0] === 0) {
+            return response.notFound(
+                res,
+                "data not found"
+            )
+        }
+
+        return response.success(
+            res,
+            null,
+            "data deleted successfully"
+        )
+
+    } catch (err) {
+
+        return response.error(
+            res,
+            err,
+            422
+        )
     }
 }

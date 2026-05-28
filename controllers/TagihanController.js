@@ -1,4 +1,4 @@
-import { get, show, tagihan } from "../models/Tagihan.js"
+import { get, show, destroy, tagihan } from "../models/Tagihan.js"
 import paginationDB from '../config/PaginationDB.js'
 import * as response from '../helpers/response.js'
 import { v4 as uuidv4 } from 'uuid'
@@ -12,7 +12,11 @@ export const createTagihan = async (req, res) => {
             id_deskripsi_tagihan: req.body.idDeskripsiTagihan,
             tanggal_tagihan: req.body.tanggalTagihan,
             tanggal_jatuh_tempo: req.body.tanggalJatuhTempo,
-            total: req.body.total,
+            harga_satuan: req.body.hargaSatuan,
+            jumlah: req.body.jumlah || 1,
+            diskon_persen: req.body.diskonPersen || 0,
+            diskon_nominal: req.body.diskonNominal || 0,
+            total: req.body.total || req.body.hargaSatuan,
             id_status_tagihan: "UNPAID",
             temp_key: uniqueKey
         })
@@ -77,5 +81,33 @@ export const showTagihan = async (req, res) => {
 
     } catch (err) {
         return response.error(res, err)
+    }
+}
+
+export const destroyTagihan = async (req, res) => {
+    try {
+
+        const result = await destroy(req.params.id)
+
+        if (!result || result[0] === 0) {
+            return response.notFound(
+                res,
+                "data not found"
+            )
+        }
+
+        return response.success(
+            res,
+            null,
+            "data deleted successfully"
+        )
+
+    } catch (err) {
+
+        return response.error(
+            res,
+            err,
+            422
+        )
     }
 }

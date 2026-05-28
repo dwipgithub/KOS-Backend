@@ -69,15 +69,14 @@ export const createPenyewa = async (req, res) => {
                 nama: req.body.nama,
                 alamat: req.body.alamat,
                 no_telp: req.body.noTelp,
-                email: req.body.email,
                 id_pengenal: req.body.idPengenal,
                 no_pengenal: req.body.noPengenal,
                 id_jenis_kelamin: req.body.idJenisKelamin,
-                id_status_pernikahan: req.body.idStatusPernikahan,
-                id_profesi: req.body.idProfesi,
+                nama_orang_tua: req.body.namaOrangTua,
+                no_telp_orang_tua: req.body.noTelpOrangTua,
+                profesi: req.body.profesi,
                 nama_institusi: req.body.namaInstitusi,
                 alamat_institusi: req.body.alamatInstitusi,
-                no_telp_institusi: req.body.noTelpInstitusi,
                 dokumen_pengenal: dokumenPath,
                 temp_key: uniqueKey
             })
@@ -120,15 +119,12 @@ export const updatePenyewa = async (req, res) => {
             nama: req.body.nama,
             alamat: req.body.alamat,
             no_telp: req.body.noTelp,
-            email: req.body.email,
             id_pengenal: req.body.idPengenal,
             no_pengenal: req.body.noPengenal,
             id_jenis_kelamin: req.body.idJenisKelamin,
-            id_status_pernikahan: req.body.idStatusPernikahan,
-            id_profesi: req.body.idProfesi,
+            profesi: req.body.profesi,
             nama_institusi: req.body.namaInstitusi,
-            alamat_institusi: req.body.alamatInstitusi,
-            no_telp_institusi: req.body.noTelpInstitusi
+            alamat_institusi: req.body.alamatInstitusi
         }
 
         if (req.file) {

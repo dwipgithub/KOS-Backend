@@ -1,4 +1,4 @@
-import { mutasi_kas_operasional, get, show } from "../models/MutasiKasOperasional.js"
+import { pemasukan, get, show, destroy } from "../models/Pemasukan.js"
 import paginationDB from '../config/PaginationDB.js'
 import * as response from '../helpers/response.js'
 import { v4 as uuidv4 } from 'uuid'
@@ -7,7 +7,7 @@ import { encodeRouteId } from "../helpers/routeId.js"
 // ======================
 // GET
 // ======================
-export const getMutasiKas = async (req, res) => {
+export const getPemasukan = async (req, res) => {
     try {
         const results = await get(req)
 
@@ -44,7 +44,7 @@ export const getMutasiKas = async (req, res) => {
 // ======================
 // SHOW
 // ======================
-export const showMutasiKas = async (req, res) => {
+export const showPemasukan = async (req, res) => {
     try {
 
         const result = await show(req.params.id)
@@ -70,24 +70,24 @@ export const showMutasiKas = async (req, res) => {
 // ======================
 // CREATE
 // ======================
-export const createMutasiKas = async (req, res) => {
+export const createPemasukan = async (req, res) => {
     try {
 
         const uniqueKey = uuidv4()
 
         const idKas = req.body.idKas || "KAS-1"
 
-        await mutasi_kas_operasional.create({
+        await pemasukan.create({
             id_kas: idKas,
             tipe: req.body.tipe,
-            tanggal_mutasi_kas: req.body.tanggalMutasiKas,
+            tanggal_pemasukan: req.body.tanggalPemasukan,
             total: req.body.total,
             keterangan: req.body.keterangan,
             temp_key: uniqueKey,
             pengguna_id: req.user.id
         })
 
-        const data = await mutasi_kas_operasional.findOne({
+        const data = await pemasukan.findOne({
             where: {
                 temp_key: uniqueKey
             }
@@ -99,7 +99,7 @@ export const createMutasiKas = async (req, res) => {
         })
 
     } catch (err) {
-        console.log("Gagal menyimpan mutasi kas:", err)
+        console.log("Gagal menyimpan pemasukan kas:", err)
         return response.error(res, err, 500)
     }
 }
@@ -107,13 +107,13 @@ export const createMutasiKas = async (req, res) => {
 // ======================
 // UPDATE
 // ======================
-export const updateMutasiKas = async (req, res) => {
+export const updatePemasukan = async (req, res) => {
     try {
 
         // ======================
         // CEK DATA
         // ======================
-        const existingData = await mutasi_kas.findByPk(req.params.id)
+        const existingData = await pemasukan.findByPk(req.params.id)
 
         if (!existingData) {
             return response.notFound(
@@ -125,10 +125,10 @@ export const updateMutasiKas = async (req, res) => {
         // ======================
         // UPDATE
         // ======================
-        const [affectedRows] = await mutasi_kas.update({
+        const [affectedRows] = await pemasukan.update({
             id_kas: req.body.idKas,
             tipe: req.body.tipe,
-            tanggal_mutasi_kas: req.body.tanggalMutasiKas,
+            tanggal_pemasukan: req.body.tanggalPemasukan,
             total: req.body.total,
             keterangan: req.body.keterangan
         }, {
@@ -151,7 +151,7 @@ export const updateMutasiKas = async (req, res) => {
         // ======================
         // GET UPDATED DATA
         // ======================
-        const updatedData = await mutasi_kas.findByPk(req.params.id)
+        const updatedData = await pemasukan.findByPk(req.params.id)
 
         return response.success(
             res,
@@ -164,5 +164,33 @@ export const updateMutasiKas = async (req, res) => {
 
     } catch (err) {
         return response.error(res, err, 500)
+    }
+}
+
+export const destroyPemasukan = async (req, res) => {
+    try {
+
+        const result = await destroy(req.params.id)
+
+        if (!result || result[0] === 0) {
+            return response.notFound(
+                res,
+                "data not found"
+            )
+        }
+
+        return response.success(
+            res,
+            null,
+            "data deleted successfully"
+        )
+
+    } catch (err) {
+
+        return response.error(
+            res,
+            err,
+            422
+        )
     }
 }

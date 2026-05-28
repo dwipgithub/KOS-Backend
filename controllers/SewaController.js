@@ -1,4 +1,6 @@
 import { sewa, get, show  } from "../models/Sewa.js"
+import { tagihan } from "../models/Tagihan.js"
+import { database } from "../config/Database.js"
 import paginationDB from '../config/PaginationDB.js'
 import * as response from '../helpers/response.js'
 import { v4 as uuidv4 } from 'uuid'
@@ -48,9 +50,14 @@ export const showSewa = async (req, res) => {
 }
 
 export const createSewa = async (req, res) => {
+    const transaction = await database.transaction()
+
     try {
         const uniqueKey = uuidv4()
 
+        // ======================
+        // CREATE CONTRACT
+        // ======================
         await sewa.create({
             id_kamar: req.body.idKamar,
             id_penyewa: req.body.idPenyewa,
@@ -58,23 +65,92 @@ export const createSewa = async (req, res) => {
             tanggal_masuk: req.body.tanggalMasuk,
             tanggal_keluar: req.body.tanggalKeluar,
             id_durasi: req.body.idDurasi,
-            harga_per_durasi: req.body.hargaPerDurasi,
-            jumlah_durasi: req.body.jumlahDurasi,
-            uang_muka: req.body.uangMuka != null ? Number(req.body.uangMuka) : 0,
             catatan: req.body.catatan,
             temp_key: uniqueKey
+        }, { transaction })
+        
+        const data = await sewa.findOne({
+            where: { temp_key: uniqueKey },
+            transaction
         })
 
-        const data = await sewa.findOne({
-            where: { temp_key: uniqueKey }
-        })
+        // ======================
+        // CREATE RENT BILL
+        // ======================
+        await tagihan.create({
+            id_sewa: data.id,
+            id_deskripsi_tagihan: "RENT",
+
+            harga_satuan: req.body.hargaSatuan,
+            jumlah: req.body.jumlah || 1,
+
+            diskon_persen: req.body.diskonPersen || 0,
+            diskon_nominal: req.body.diskonNominal || 0,
+
+            total: (req.body.hargaSatuan * (req.body.jumlah || 1)) - (req.body.diskonNominal || 0) - (req.body.uangMuka || 0),
+
+            tanggal_tagihan: new Date(),
+            tanggal_jatuh_tempo: new Date(),
+
+            id_status_tagihan: "UNPAID",
+            temp_key: uuidv4()
+        }, { transaction })
+
+        // ======================
+        // CREATE DP BILL
+        // ======================
+        if ( 
+            req.body.uangMuka != null && Number(req.body.uangMuka) > 0 
+        ){
+            await tagihan.create({ 
+                id_sewa: data.id, 
+                id_deskripsi_tagihan: "DP", 
+                harga_satuan: Number(req.body.uangMuka), 
+                jumlah: 1, 
+                diskon_persen: 0, 
+                diskon_nominal: 0, 
+                total: Number(req.body.uangMuka), 
+                tanggal_tagihan: new Date(), 
+                tanggal_jatuh_tempo: new Date(),
+                id_status_tagihan: "UNPAID", temp_key: uuidv4() 
+            }, { transaction })
+        }
+        
+        // ======================
+        // CREATE DEPOSIT BILL
+        // ======================
+        if ( 
+            req.body.uangJaminan != null && 
+            Number(req.body.uangJaminan) > 0 )
+        {
+            await tagihan.create({ 
+                id_sewa: data.id, 
+                id_deskripsi_tagihan: "DEPOSIT", 
+                harga_satuan: Number(req.body.uangJaminan), 
+                jumlah: 1, 
+                diskon_persen: 0, 
+                diskon_nominal: 0, 
+                total: Number(req.body.uangJaminan), 
+                tanggal_tagihan: new Date(), 
+                tanggal_jatuh_tempo: new Date(), 
+                id_status_tagihan: "UNPAID", 
+                temp_key: uuidv4()
+            }, { transaction })
+        }
+
+        // ========================= 
+        // COMMIT 
+        // ========================= 
+        
+        await transaction.commit()
 
         return response.created(res, {
             id: data.id
         })
 
-    } catch (err) {
-        console.log("Gagal menyimpan sewa:", err)
+    }  catch (err) {
+        await transaction.rollback()
+        console.log("Gagal membuat sewa:", err)
         return response.error(res, err, 500)
     }
 }
