@@ -426,3 +426,73 @@ export const show = async (id) => {
         throw error
     }
 }
+
+export const destroy = async (id) => {
+    const transaction = await database.transaction()
+
+    try {
+
+        // =====================================
+        // CHECK PAID BILL
+        // =====================================
+        const paidBill = await database.query(`
+            SELECT id
+            FROM tagihan
+            WHERE id_sewa = ?
+            AND id_status_tagihan = 'PAID'
+            LIMIT 1
+        `, {
+            type: QueryTypes.SELECT,
+            replacements: [id],
+            transaction
+        })
+
+        if (paidBill.length > 0) {
+            throw new Error(
+                "Rental cannot be cancelled because there are paid bills."
+            )
+        }
+
+        // =====================================
+        // UPDATE SEWA
+        // =====================================
+        await database.query(`
+            UPDATE sewa
+            SET
+                id_status_sewa = 'CANCELLED',
+                tanggal_diubah = NOW()
+            WHERE id = ?
+        `, {
+            replacements: [id],
+            transaction
+        })
+
+        // =====================================
+        // UPDATE TAGIHAN
+        // =====================================
+        await database.query(`
+            UPDATE tagihan
+            SET
+                id_status_tagihan = 'CANCELLED',
+                tanggal_diubah = NOW()
+            WHERE id_sewa = ?
+            AND id_status_tagihan = 'UNPAID'
+        `, {
+            replacements: [id],
+            transaction
+        })
+
+        await transaction.commit()
+
+        return {
+            success: true,
+            message: "Rental cancelled successfully."
+        }
+
+    } catch (error) {
+
+        await transaction.rollback()
+        throw error
+
+    }
+}

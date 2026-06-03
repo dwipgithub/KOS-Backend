@@ -1,4 +1,4 @@
-import { sewa, get, show  } from "../models/Sewa.js"
+import { sewa, get, show, destroy  } from "../models/Sewa.js"
 import { tagihan } from "../models/Tagihan.js"
 import { database } from "../config/Database.js"
 import paginationDB from '../config/PaginationDB.js'
@@ -46,6 +46,18 @@ export const showSewa = async (req, res) => {
 
     } catch (err) {
         return response.error(res, err)
+    }
+}
+
+export const destroySewa = async (req, res) => {
+    try {
+        const result = await destroy(
+            req.params.id
+        )
+
+        return response.success(res, result, 'Rental cancelled successfully')
+    } catch (err) {
+        return response.error(res, err, 422)
     }
 }
 

@@ -162,6 +162,7 @@ router.patch('/penyewa/:id', allowAll, decodeRouteIdParam('id'), penyewaDokumenU
 router.get('/sewa', allowAll, Sewa.getSewa)
 router.get('/sewa/:id', allowAll, Sewa.showSewa)
 router.post('/sewa', allowAll, decodeBodyFields(["idKamar"]), Sewa.createSewa)
+router.delete('/sewa/:id', allowAll, Sewa.destroySewa)
 
 // ======================
 // TAGIHAN
