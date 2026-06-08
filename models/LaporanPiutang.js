@@ -23,6 +23,12 @@ export const get = async (req) => {
         }
 
         // ======================
+        // HANYA TAGIHAN UNPAID
+        // ======================
+        filters.push("t.id_status_tagihan = ?")
+        replacements.push("UNPAID")
+
+        // ======================
         // FILTER PROPERTI
         // ======================
         if (idProperti) {
