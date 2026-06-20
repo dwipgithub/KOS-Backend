@@ -205,7 +205,7 @@ export const login = async (req, res) => {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             sameSite: 'Strict',
-            secure: true,
+            secure: false, // set to true in production with HTTPS
             maxAge: 6 * 60 * 60 * 1000
         })
 
@@ -219,7 +219,7 @@ export const login = async (req, res) => {
         // ======================
         return res.status(200).send({
             status: true,
-            message: "access token created",
+            message: "token created",
             data: {
                 name: user.nama,
                 role: user.peran,

@@ -2,6 +2,8 @@ import { pemasukan, get, show, destroy } from "../models/Pemasukan.js"
 import paginationDB from '../config/PaginationDB.js'
 import * as response from '../helpers/response.js'
 import { v4 as uuidv4 } from 'uuid'
+import fs from "fs/promises"
+import { privateFileUrl } from "../helpers/privateFileUrl.js"
 import { encodeRouteId } from "../helpers/routeId.js"
 
 // ======================
@@ -76,16 +78,25 @@ export const createPemasukan = async (req, res) => {
         const uniqueKey = uuidv4()
 
         const idKas = req.body.idKas || "KAS-1"
+        const dokumenPath = req.file ? `pemasukan/${req.file.filename}` : null
 
-        await pemasukan.create({
-            id_kas: idKas,
-            tipe: req.body.tipe,
-            tanggal_pemasukan: req.body.tanggalPemasukan,
-            total: req.body.total,
-            keterangan: req.body.keterangan,
-            temp_key: uniqueKey,
-            pengguna_id: req.user.id
-        })
+        try {
+            await pemasukan.create({
+                id_kas: idKas,
+                tipe: req.body.tipe,
+                tanggal_pemasukan: req.body.tanggalPemasukan,
+                total: req.body.total,
+                keterangan: req.body.keterangan,
+                bukti_pemasukan: dokumenPath,
+                temp_key: uniqueKey,
+                pengguna_id: req.user.id
+            })
+        } catch (createErr) {
+            if (req.file?.path) {
+                await fs.unlink(req.file.path).catch(() => {})
+            }
+            throw createErr
+        }
 
         const data = await pemasukan.findOne({
             where: {
@@ -95,7 +106,8 @@ export const createPemasukan = async (req, res) => {
 
         return response.created(res, {
             id: data.id,
-            routeId: encodeRouteId(data.id)
+            routeId: encodeRouteId(data.id),
+            buktiPemasukan: dokumenPath ? privateFileUrl(dokumenPath) : null
         })
 
     } catch (err) {

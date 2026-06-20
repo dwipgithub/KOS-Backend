@@ -1,5 +1,6 @@
 import { DataTypes, QueryTypes } from "sequelize"
 import { database } from "../config/Database.js"
+import { privateFileUrl } from "../helpers/privateFileUrl.js"
 
 export const tagihan = database.define('tagihan', {
     id: {
@@ -80,7 +81,13 @@ export const get = async (req) => {
 
                 p.id AS id_penyewa,
                 p.nama AS nama_penyewa,
-                p.no_telp AS no_telp_penyewa
+                p.no_telp AS no_telp_penyewa,
+
+                pb.id as id_pembayaran,
+                pb.tanggal_bayar as tanggal_bayar,
+                pb.id_metode_bayar as id_metode_bayar,
+                pb.total_bayar as total_bayar,
+                pb.bukti_bayar as bukti_bayar
         `
 
         // ======================
@@ -100,6 +107,9 @@ export const get = async (req) => {
 
             JOIN status_tagihan st 
                 ON t.id_status_tagihan = st.id
+            
+            LEFT JOIN pembayaran pb
+                ON t.id = pb.id_tagihan
         `
 
         // ======================
@@ -222,7 +232,17 @@ export const get = async (req) => {
             statusTagihan: {
                 id: item.id_status_tagihan,
                 nama: item.status_tagihan_nama
-            }
+            },
+
+            pembayaran: item.id_pembayaran
+                ? {
+                    id: item.id_pembayaran,
+                    tanggalBayar: item.tanggal_bayar,
+                    idMetodeBayar: item.id_metode_bayar,
+                    totalBayar: item.total_bayar,
+                    buktiBayar: privateFileUrl(item.bukti_bayar),
+                }
+                : null
         }))
 
         // ======================

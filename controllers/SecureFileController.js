@@ -5,7 +5,7 @@ import * as response from "../helpers/response.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const UPLOAD_ROOT = path.resolve(path.join(__dirname, "..", "uploads"))
-const ALLOWED_FOLDERS = new Set(["penyewa", "pembayaran"])
+const ALLOWED_FOLDERS = new Set(["penyewa", "pembayaran", "pengeluaran", "pemasukan"])
 
 const MIME_BY_EXT = {
     ".pdf": "application/pdf",

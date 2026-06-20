@@ -63,6 +63,7 @@ import { servePrivateFile } from '../controllers/SecureFileController.js'
 import { penyewaDokumenUpload } from '../middleware/uploadPenyewaDokumen.js'
 import { pembayaranBuktiUpload } from '../middleware/uploadPembayaranBukti.js'
 import { pengeluaranBuktiUpload } from '../middleware/uploadPengeluaranBukti.js'
+import { pemasukanBuktiUpload } from '../middleware/uploadPemasukanBukti.js'
 
 const router = express.Router()
 
@@ -197,7 +198,7 @@ router.delete('/pengeluaran/:id', allowAll, Pengeluaran.destroyPengeluaran)
 // ======================
 // PEMASUKAN
 // ======================
-router.post('/pemasukan', allowAll, Pemasukan.createPemasukan)
+router.post('/pemasukan', allowAll, pemasukanBuktiUpload, Pemasukan.createPemasukan)
 router.delete('/pemasukan/:id', allowAll, Pemasukan.destroyPemasukan)
 
 

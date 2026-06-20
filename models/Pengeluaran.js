@@ -27,7 +27,7 @@ export const pengeluaran = database.define('pengeluaran', {
     catatan: {
         type: DataTypes.STRING
     },
-        temp_key: {
+    temp_key: {
             type: DataTypes.STRING
     },
     bukti_pengeluaran: {

@@ -1,5 +1,6 @@
 import { QueryTypes } from "sequelize"
 import { database } from "../config/Database.js"
+import { privateFileUrl } from "../helpers/privateFileUrl.js"
 
 export const get = async (req) => {
     try {
@@ -99,7 +100,9 @@ export const get = async (req) => {
 
                 NULL AS nama_kamar,
 
-                p.pengguna_id
+                p.pengguna_id,
+
+                p.bukti_pemasukan AS bukti
 
             FROM pemasukan p
 
@@ -127,7 +130,9 @@ export const get = async (req) => {
 
                 k.nama AS nama_kamar,
 
-                pg.pengguna_id
+                pg.pengguna_id,
+
+                pg.bukti_pengeluaran AS bukti
 
             FROM pengeluaran pg
 
@@ -293,7 +298,9 @@ export const get = async (req) => {
                         id: item.id_kamar,
                         nama: item.nama_kamar
                     }
-                    : null
+                    : null,
+
+                bukti: privateFileUrl(item.bukti)
             }
         })
 

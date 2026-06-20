@@ -1,5 +1,6 @@
 import { QueryTypes } from "sequelize"
 import { database } from "../config/Database.js"
+import { privateFileUrl } from "../helpers/privateFileUrl.js"
 
 export const get = async (req) => {
     try {
@@ -113,7 +114,8 @@ export const get = async (req) => {
                     a.nama AS nama_akun,
                     k.id_properti AS id_properti,
                     'PENDAPATAN' AS jenis,
-                    dt.nama AS kategori
+                    dt.nama AS kategori,
+                    p.bukti_bayar AS bukti
                 FROM pembayaran p
                 JOIN tagihan t ON p.id_tagihan = t.id
                 JOIN deskripsi_tagihan dt ON t.id_deskripsi_tagihan = dt.id
@@ -135,7 +137,8 @@ export const get = async (req) => {
                     a.nama AS nama_akun,
                     pg.id_properti,
                     'PENGELUARAN' AS jenis,
-                    kp.nama AS kategori
+                    kp.nama AS kategori,
+                    pg.bukti_pengeluaran AS bukti
                 FROM pengeluaran pg
                 LEFT JOIN kategori_pengeluaran kp 
                     ON pg.id_kategori_pengeluaran = kp.id
@@ -191,6 +194,7 @@ export const get = async (req) => {
                 debit,
                 kredit,
                 saldo: group.saldo,
+                bukti: privateFileUrl(item.bukti),
                 properti: {
                     id: item.id_properti
                 }

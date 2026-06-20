@@ -18,6 +18,10 @@ export const pemasukan = database.define('pemasukan', {
     temp_key: {
         type: DataTypes.STRING
     },
+    bukti_pemasukan: {
+        type: DataTypes.STRING(512),
+        allowNull: true
+    },
     pengguna_id: {
         type: DataTypes.INTEGER
     }
