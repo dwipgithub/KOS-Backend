@@ -83,6 +83,7 @@ export const createPemasukan = async (req, res) => {
         try {
             await pemasukan.create({
                 id_kas: idKas,
+                id_properti: req.body.idProperti,
                 tipe: req.body.tipe,
                 tanggal_pemasukan: req.body.tanggalPemasukan,
                 total: req.body.total,

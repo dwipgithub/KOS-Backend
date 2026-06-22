@@ -6,6 +6,9 @@ export const pemasukan = database.define('pemasukan', {
         type: DataTypes.STRING,
         primaryKey: true
     },
+    id_properti: {
+        type: DataTypes.STRING
+    },
     keterangan: {
         type: DataTypes.STRING
     },

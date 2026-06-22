@@ -119,7 +119,8 @@ export const get = async (req) => {
         const { 
             id_properti,
             nama, 
-            id_status_kamar
+            id_status_kamar,
+            tipe
         } = req.query
 
         if (nama) {
@@ -135,6 +136,11 @@ export const get = async (req) => {
         if (id_status_kamar) {
             filters.push("k.id_status_kamar = ?")
             replacements.push(id_status_kamar)
+        }
+
+        if (tipe) {
+            filters.push("k.tipe = ?")
+            replacements.push(tipe)
         }
 
         const sqlWhere = filters.length > 0 ? " WHERE " + filters.join(" AND ") : ""
