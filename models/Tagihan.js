@@ -13,6 +13,9 @@ export const tagihan = database.define('tagihan', {
     id_deskripsi_tagihan: {
         type: DataTypes.STRING
     },
+    id_durasi: {
+        type: DataTypes.STRING
+    },
     harga_satuan: {
         type: DataTypes.DOUBLE
     },
@@ -27,6 +30,12 @@ export const tagihan = database.define('tagihan', {
     },
     total: {
         type: DataTypes.DOUBLE
+    },
+    tanggal_masuk: {
+        type: DataTypes.DATEONLY
+    },
+    tanggal_keluar: {
+        type: DataTypes.DATEONLY
     },
     tanggal_tagihan: {
         type: DataTypes.DATEONLY
@@ -67,10 +76,14 @@ export const get = async (req) => {
                 t.id,
                 t.id_sewa,
 
-                s.tanggal_masuk,
-                s.tanggal_keluar,
+                s.tanggal_masuk as tanggal_masuk_sewa,
+                s.tanggal_keluar as tanggal_keluar_sewa,
 
                 t.id_deskripsi_tagihan,
+
+                t.id_durasi,
+                t.tanggal_masuk as tanggal_masuk_tagihan,
+                t.tanggal_keluar as tanggal_keluar_tagihan,
 
                 t.tanggal_tagihan,
                 t.tanggal_jatuh_tempo,
@@ -218,11 +231,14 @@ export const get = async (req) => {
 
             sewa: {
                 id: item.id_sewa,
-                tanggalMasuk: item.tanggal_masuk,
-                tanggalKeluar: item.tanggal_keluar
+                tanggalMasuk: item.tanggal_masuk_sewa,
+                tanggalKeluar: item.tanggal_keluar_sewa
             },
 
             idDeskripsiTagihan: item.id_deskripsi_tagihan,
+            idDurasi: item.id_durasi,
+            tanggalMasukTagihan: item.tanggal_masuk_tagihan,
+            tanggalKeluarTagihan: item.tanggal_keluar_tagihan,
 
             tanggalTagihan: item.tanggal_tagihan,
             tanggalJatuhTempo: item.tanggal_jatuh_tempo,

@@ -93,6 +93,10 @@ export const createSewa = async (req, res) => {
             id_sewa: data.id,
             id_deskripsi_tagihan: "RENT",
 
+            id_durasi: req.body.idDurasi,
+            tanggal_masuk: req.body.tanggalMasuk,
+            tanggal_keluar: req.body.tanggalKeluar,
+
             harga_satuan: req.body.hargaSatuan,
             jumlah: req.body.jumlah || 1,
 

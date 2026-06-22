@@ -10,6 +10,9 @@ export const createTagihan = async (req, res) => {
         await tagihan.create({
             id_sewa: req.body.idSewa,
             id_deskripsi_tagihan: req.body.idDeskripsiTagihan,
+            id_durasi: req.body.idDurasi || null,
+            tanggal_masuk: req.body.tanggalMasuk || null,
+            tanggal_keluar: req.body.tanggalKeluar || null,
             tanggal_tagihan: req.body.tanggalTagihan,
             tanggal_jatuh_tempo: req.body.tanggalJatuhTempo,
             harga_satuan: req.body.hargaSatuan,
