@@ -419,21 +419,72 @@ export const show = async (idSewa) => {
 export const destroy = async (id) => {
     try {
 
-        const sql = `
-            UPDATE tagihan
-            SET 
-                tanggal_dihapus = NOW()
+        const tagihan = await database.query(`
+            SELECT id_sewa
+            FROM tagihan
             WHERE id = ?
-        `
+              AND tanggal_dihapus IS NULL
+        `, {
+            type: QueryTypes.SELECT,
+            replacements: [id]
+        });
 
-        const result = await database.query(sql, {
+        if (!tagihan.length) {
+            throw new Error("Tagihan tidak ditemukan");
+        }
+
+        const { id_sewa } = tagihan[0];
+
+        const resultCount = await database.query(`
+            SELECT COUNT(*) AS total
+            FROM tagihan
+            WHERE id_sewa = ?
+                AND tanggal_dihapus IS NULL
+        `, {
+            type: QueryTypes.SELECT,
+            replacements: [id_sewa]
+        });
+
+        if (resultCount[0].total <= 1) {
+            throw new Error(
+                "Tagihan tidak dapat dihapus karena harus menyisakan minimal 1 tagihan."
+            );
+        }
+
+        const result = await database.query(`
+            UPDATE tagihan
+            SET tanggal_dihapus = NOW()
+            WHERE id = ?
+        `, {
             type: QueryTypes.UPDATE,
             replacements: [id]
-        })
+        });
 
-        return result
+        return result;
 
     } catch (error) {
-        throw error
+        throw error;
     }
-}
+};
+
+// export const destroy = async (id) => {
+//     try {
+
+//         const sql = `
+//             UPDATE tagihan
+//             SET 
+//                 tanggal_dihapus = NOW()
+//             WHERE id = ?
+//         `
+
+//         const result = await database.query(sql, {
+//             type: QueryTypes.UPDATE,
+//             replacements: [id]
+//         })
+
+//         return result
+
+//     } catch (error) {
+//         throw error
+//     }
+// }
