@@ -15,6 +15,9 @@ export const get = async (req) => {
         const pengeluaranFilters = []
         const pengeluaranReplacements = []
 
+        pembayaranFilters.push("t.tanggal_dihapus IS NULL")
+        pengeluaranFilters.push("pg.tanggal_dihapus IS NULL")
+
         if (startDate && endDate) {
             pembayaranFilters.push("DATE(p.tanggal_bayar) BETWEEN ? AND ?")
             pembayaranReplacements.push(startDate, endDate)

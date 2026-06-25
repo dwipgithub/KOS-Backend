@@ -62,6 +62,7 @@ export const get = async (req) => {
                 JOIN deskripsi_tagihan dt ON t.id_deskripsi_tagihan = dt.id
                 JOIN sewa s ON t.id_sewa = s.id
                 JOIN kamar k ON s.id_kamar = k.id
+                WHERE t.tanggal_dihapus IS NULL
 
                 UNION ALL
 
@@ -74,7 +75,7 @@ export const get = async (req) => {
                 FROM pengeluaran pg
                 LEFT JOIN kategori_pengeluaran kp 
                     ON pg.id_kategori_pengeluaran = kp.id
-                WHERE kp.id_akun IS NOT NULL
+                WHERE kp.id_akun IS NOT NULL AND pg.tanggal_dihapus IS NULL
 
             ) t
             WHERE DATE(tanggal_transaksi) < ?
@@ -122,6 +123,7 @@ export const get = async (req) => {
                 JOIN akun a ON dt.id_akun = a.id
                 JOIN sewa s ON t.id_sewa = s.id
                 JOIN kamar k ON s.id_kamar = k.id
+                WHERE t.tanggal_dihapus IS NULL
 
                 UNION ALL
 
@@ -144,7 +146,7 @@ export const get = async (req) => {
                     ON pg.id_kategori_pengeluaran = kp.id
                 LEFT JOIN akun a 
                     ON kp.id_akun = a.id
-                WHERE kp.id_akun IS NOT NULL
+                WHERE kp.id_akun IS NOT NULL AND pg.tanggal_dihapus IS NULL
 
             ) transaksi
             ${whereClause}

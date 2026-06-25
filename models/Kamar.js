@@ -337,16 +337,18 @@ export const show = async (id) => {
             statusSewa: row.status_sewa_terbaru,
             bisaDisewakan: row.bisa_disewakan,
             sewa:
-                row.penyewa_id
-                    ? {
-                        id: row.id_sewa,
-                        penyewa: {
-                            id: row.penyewa_id,
-                            nama: row.penyewa_nama,
-                            noTelp: row.penyewa_no_telp
+                row.status_sewa_terbaru === "Tersedia"
+                    ? null
+                    : row.penyewa_id
+                        ? {
+                            id: row.id_sewa,
+                            penyewa: {
+                                id: row.penyewa_id,
+                                nama: row.penyewa_nama,
+                                noTelp: row.penyewa_no_telp
+                            }
                         }
-                    }
-                    : null,
+                        : null,
             hargaPerHari: row.harga_per_hari,
             hargaPerMinggu: row.harga_per_minggu,
             hargaPerBulan: row.harga_per_bulan,
