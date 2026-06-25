@@ -2,8 +2,8 @@ import { decodeRouteId } from "../helpers/routeId.js";
 
 export const decodeBodyFields = (fields = []) => (req, res, next) => {
     try {
-        console.log("=== BEFORE DECODE ===");
-        console.log(req.body);
+        // console.log("=== BEFORE DECODE ===");
+        // console.log(req.body);
 
         for (const field of fields) {
             if (req.body[field]) {
@@ -19,8 +19,8 @@ export const decodeBodyFields = (fields = []) => (req, res, next) => {
             }
         }
 
-        console.log("=== AFTER DECODE ===");
-        console.log(req.body);
+        // console.log("=== AFTER DECODE ===");
+        // console.log(req.body);
 
         next();
     } catch (err) {

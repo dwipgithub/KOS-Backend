@@ -18,6 +18,10 @@ export const kamar = database.define('kamar', {
     catatan: {
         type: DataTypes.TEXT
     },
+    bisa_disewakan: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
     harga_per_hari: {
         type: DataTypes.DOUBLE
     },
@@ -66,13 +70,16 @@ export const get = async (req) => {
             kel.nama AS kelurahan_nama,
             k.nama,
             k.id_status_kamar,
+            k.bisa_disewakan,
             sk.nama AS status_kamar_nama,
             k.catatan,
+            k.bisa_disewakan,
             k.harga_per_hari,
             k.harga_per_minggu,
             k.harga_per_bulan,
             k.harga_per_tahun,
             CASE 
+                WHEN k.bisa_disewakan = 0 THEN 'Tidak disewakan'
                 WHEN ss.id = 'ACTIVE' THEN 'Sudah disewa'
                 WHEN ss.id = 'BOOKED' THEN 'Sudah dipesan'
                 ELSE 'Tersedia'
@@ -164,18 +171,18 @@ export const get = async (req) => {
                 nama: item.status_kamar_nama
             },
             statusSewa: item.status_sewa_terbaru,
-            sewa: item.status_sewa_terbaru === "Tersedia"
-            ? null
-            : {
-                id: item.id_sewa,
-                penyewa: item.penyewa_id
+            bisaDisewakan: item.bisa_disewakan,
+            sewa:
+                item.penyewa_id
                     ? {
-                        id: item.penyewa_id,
-                        nama: item.penyewa_nama,
-                        noTelp: item.penyewa_no_telp
+                        id: item.id_sewa,
+                        penyewa: {
+                            id: item.penyewa_id,
+                            nama: item.penyewa_nama,
+                            noTelp: item.penyewa_no_telp
+                        }
                     }
-                    : null
-            },
+                    : null,
             hargaPerHari: item.harga_per_hari,
             hargaPerMinggu: item.harga_per_minggu,
             hargaPerBulan: item.harga_per_bulan,
@@ -251,13 +258,15 @@ export const show = async (id) => {
             kel.nama AS kelurahan_nama,
             k.nama,
             k.id_status_kamar,
+            k.bisa_disewakan,
             sk.nama AS status_kamar_nama,
             k.catatan,
             k.harga_per_hari,
             k.harga_per_minggu,
             k.harga_per_bulan,
             k.harga_per_tahun,
-            CASE 
+            CASE
+                WHEN k.bisa_disewakan = 0 THEN 'Tidak disewakan'
                 WHEN ss.id = 'ACTIVE' THEN 'Sudah disewa'
                 WHEN ss.id = 'BOOKED' THEN 'Sudah dipesan'
                 ELSE 'Tersedia'
@@ -326,18 +335,18 @@ export const show = async (id) => {
                 nama: row.status_kamar_nama
             },
             statusSewa: row.status_sewa_terbaru,
-            sewa: row.status_sewa_terbaru === "Tersedia"
-            ? null
-            : {
-                id: row.id_sewa,
-                penyewa: row.penyewa_id
+            bisaDisewakan: row.bisa_disewakan,
+            sewa:
+                row.penyewa_id
                     ? {
-                        id: row.penyewa_id,
-                        nama: row.penyewa_nama,
-                        noTelp: row.penyewa_no_telp
+                        id: row.id_sewa,
+                        penyewa: {
+                            id: row.penyewa_id,
+                            nama: row.penyewa_nama,
+                            noTelp: row.penyewa_no_telp
+                        }
                     }
-                    : null
-            },
+                    : null,
             hargaPerHari: row.harga_per_hari,
             hargaPerMinggu: row.harga_per_minggu,
             hargaPerBulan: row.harga_per_bulan,

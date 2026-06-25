@@ -1,10 +1,31 @@
 import { get, keluar } from '../models/Keluar.js'
+import { sewa } from '../models/Sewa.js'
+import { kamar } from '../models/Kamar.js'
 import paginationDB from '../config/PaginationDB.js'
 import * as response from '../helpers/response.js'
 import { v4 as uuidv4 } from 'uuid'
 
 export const createKeluar = async (req, res) => {
     try {
+        // ======================
+        // VALIDATE SEWA STATUS
+        // ======================
+        const dataSewa = await sewa.findByPk(req.body.idSewa)
+        
+        if (!dataSewa) {
+            return response.notFound(res, 'Sewa tidak ditemukan')
+        }
+        
+        const ruangan = await kamar.findByPk(dataSewa.id_kamar)
+        
+        if (ruangan && ruangan.bisa_disewakan === 0) {
+            return response.error(
+                res, 
+                { message: 'Tidak dapat membuat catatan keluar untuk kamar dengan status "Tidak disewakan"' }, 
+                422
+            )
+        }
+
         const uniqueKey = uuidv4()
 
         await keluar.create({

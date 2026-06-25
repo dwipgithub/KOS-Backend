@@ -1,5 +1,6 @@
 import { sewa, get, show, destroy  } from "../models/Sewa.js"
 import { tagihan } from "../models/Tagihan.js"
+import { kamar } from "../models/Kamar.js"
 import { database } from "../config/Database.js"
 import paginationDB from '../config/PaginationDB.js'
 import * as response from '../helpers/response.js'
@@ -65,6 +66,27 @@ export const createSewa = async (req, res) => {
     const transaction = await database.transaction()
 
     try {
+        // ======================
+        // VALIDATE KAMAR STATUS
+        // ======================
+        const ruangan = await kamar.findByPk(req.body.idKamar, { transaction })
+
+        // console.log(ruangan)
+        
+        if (!ruangan) {
+            await transaction.rollback()
+            return response.notFound(res, 'Kamar tidak ditemukan')
+        }
+        
+        if (!ruangan.bisa_disewakan) {
+            await transaction.rollback()
+            return response.error(
+                res,
+                { message: 'Kamar dengan status "Tidak disewakan" tidak dapat dibuat kontrak sewa' },
+                422
+            )
+        }
+
         const uniqueKey = uuidv4()
 
         // ======================
