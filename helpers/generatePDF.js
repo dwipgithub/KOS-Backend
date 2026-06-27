@@ -183,12 +183,13 @@ const generateArusKasHTML = (data, filters) => {
         return `
             <tr>
                 <td style="border: 1px solid #ddd; padding: 8px;">${new Date(item.tanggalBayar).toLocaleDateString('id-ID')}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${namaTransaksi}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${item.tipe}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${item.deskripsiTagihan?.nama || '-'}</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${item.keterangan}</td>
                 <td style="border: 1px solid #ddd; padding: 8px;">${item.properti?.nama || '-'}</td>
                 <td style="border: 1px solid #ddd; padding: 8px;">${item.kamar?.nama || '-'}</td>
                 <td style="border: 1px solid #ddd; padding: 8px;">${item.penyewa?.nama || '-'}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.tipe}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${item.deskripsiTagihan?.nama || '-'}</td>
+                
                 <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${formatCurrency(jumlah)}</td>
             </tr>
         `
@@ -447,12 +448,12 @@ const generateArusKasHTML = (data, filters) => {
                     <thead>
                         <tr>
                             <th>Tanggal</th>
+                            <th>Tipe</th>
                             <th>Nama</th>
+                            <th>Keterangan</th>
                             <th>Properti</th>
                             <th>Nama Kamar</th>
                             <th>Nama Penyewa</th>
-                            <th>Tipe</th>
-                            <th>Keterangan</th>
                             <th style="text-align: right;">Jumlah</th>
                         </tr>
                     </thead>
@@ -933,10 +934,10 @@ const generateBukuBesarHTML = (data, filters) => {
             const kredit = parseFloat(trx.kredit || 0)
             akunDebit += debit
             akunKredit += kredit
-            akunSaldo += (kredit - debit)
+            akunSaldo += (debit - kredit)
             totalDebit += debit
             totalKredit += kredit
-            totalSaldo += (kredit - debit)
+            totalSaldo += (debit - kredit)
 
             const tanggalTransaksi = trx.tanggal_transaksi || trx.tanggal || trx.tanggalBayar
             const tanggalDisplay = tanggalTransaksi

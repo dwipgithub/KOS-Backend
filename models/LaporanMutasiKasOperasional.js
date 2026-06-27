@@ -131,6 +131,12 @@ export const get = async (req) => {
                             ' - ',
                             pg.nama
                         )
+                    WHEN pg.id_kamar IS NULL 
+                        THEN CONCAT(
+                            'Lokasi: Fasilitas Umum',
+                            ' - ',
+                            pg.nama
+                        )
                     ELSE
                         pg.nama
                 END AS keterangan,

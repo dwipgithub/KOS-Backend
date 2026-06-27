@@ -108,7 +108,29 @@ export const get = async (req) => {
                 -- ======================
                 SELECT 
                     p.tanggal_bayar AS tanggal_transaksi,
-                    CONCAT('Pembayaran ', dt.nama) AS keterangan,
+                    CONCAT(
+                        'Pembayaran ', 
+                        dt.nama,
+                        ' ',
+                        k.nama,
+                        ' ',
+                        CASE
+                            WHEN t.tanggal_masuk IS NOT NULL THEN
+                                CONCAT(
+                                    ' Periode ',
+                                    DATE_FORMAT(t.tanggal_masuk, '%d-%m-%Y'),
+                                    CASE
+                                        WHEN t.tanggal_keluar IS NOT NULL
+                                        THEN CONCAT(
+                                            ' - ',
+                                            DATE_FORMAT(t.tanggal_keluar, '%d-%m-%Y')
+                                        )
+                                        ELSE ''
+                                    END
+                                )
+                            ELSE ''
+                        END
+                    ) AS keterangan,
                     p.total_bayar AS debit,
                     0 AS kredit,
                     dt.id_akun AS id_akun,
@@ -132,7 +154,25 @@ export const get = async (req) => {
                 -- ======================
                 SELECT 
                     pg.tanggal_pengeluaran AS tanggal_transaksi,
-                    pg.nama AS keterangan,
+                    CASE
+                        WHEN pg.id_kamar IS NOT NULL THEN
+                            CONCAT(
+                                'Lokasi: ',
+                                k.tipe,
+                                ' ',
+                                k.nama,
+                                ' - ',
+                                pg.nama
+                            )
+                        WHEN pg.id_kamar IS NULL THEN
+                            CONCAT(
+                                'Lokasi: Fasilitas Umum',
+                                ' - ',
+                                pg.nama
+                            )
+                        ELSE
+                            pg.nama
+                    END AS keterangan,
                     0 AS debit,
                     pg.total AS kredit,
                     kp.id_akun AS id_akun,
@@ -146,6 +186,8 @@ export const get = async (req) => {
                     ON pg.id_kategori_pengeluaran = kp.id
                 LEFT JOIN akun a 
                     ON kp.id_akun = a.id
+                LEFT JOIN kamar k
+                    ON pg.id_kamar = k.id
                 WHERE kp.id_akun IS NOT NULL AND pg.tanggal_dihapus IS NULL
 
             ) transaksi
