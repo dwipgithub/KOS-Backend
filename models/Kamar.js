@@ -183,12 +183,12 @@ export const get = async (req) => {
                 INNER JOIN (
                     SELECT
                         id_sewa,
-                        MAX(tanggal_tagihan) AS max_tanggal_tagihan
+                        MAX(tanggal_dibuat) AS max_tanggal_dibuat
                     FROM tagihan
                     GROUP BY id_sewa
                 ) t2
                     ON t1.id_sewa = t2.id_sewa
-                    AND t1.tanggal_tagihan = t2.max_tanggal_tagihan
+                    AND t1.tanggal_dibuat = t2.max_tanggal_dibuat
             ) lt
                 ON lt.id_sewa = s.id_sewa AND ss.id IN ('ACTIVE','BOOKED')
         `
