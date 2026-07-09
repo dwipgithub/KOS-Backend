@@ -86,7 +86,56 @@ export const get = async (req) => {
             END AS status_sewa_terbaru,
             py.id AS penyewa_id,
             py.nama AS penyewa_nama,
-            py.no_telp AS penyewa_no_telp
+            py.no_telp AS penyewa_no_telp,
+            lt.tanggal_tagihan,
+            lt.tanggal_masuk,
+            lt.tanggal_keluar,
+            lt.nama_durasi as durasi_sewa,
+            lt.harga_satuan,
+            lt.jumlah,
+            lt.total,
+            lt.id_status_tagihan,
+            lt.nama_status_tagihan,
+            CASE
+                WHEN ss.id = 'ACTIVE'
+                    AND DATEDIFF(lt.tanggal_keluar, CURDATE()) BETWEEN 0 AND 3
+                THEN 'WARNING'
+                WHEN ss.id = 'ACTIVE'
+                    AND lt.tanggal_keluar < CURDATE()
+                THEN 'OVERDUE'
+                ELSE NULL
+            END AS jenis_notifikasi,
+            CASE
+                WHEN ss.id = 'ACTIVE'
+                    AND DATEDIFF(lt.tanggal_keluar, CURDATE()) = 3
+                THEN '3 hari lagi masa sewa berakhir'
+                WHEN ss.id = 'ACTIVE'
+                    AND DATEDIFF(lt.tanggal_keluar, CURDATE()) = 2
+                THEN '2 hari lagi masa sewa berakhir'
+                WHEN ss.id = 'ACTIVE'
+                    AND DATEDIFF(lt.tanggal_keluar, CURDATE()) = 1
+                THEN 'Besok masa sewa berakhir'
+                WHEN ss.id = 'ACTIVE'
+                    AND DATEDIFF(lt.tanggal_keluar, CURDATE()) = 0
+                THEN 'Masa sewa berakhir hari ini'
+                WHEN ss.id = 'ACTIVE'
+                    AND lt.tanggal_keluar < CURDATE()
+                THEN CONCAT(
+                    'Terlambat ',
+                    DATEDIFF(CURDATE(), lt.tanggal_keluar),
+                    ' hari'
+                )
+                ELSE NULL
+            END AS pesan_notifikasi,
+            CASE
+                WHEN ss.id = 'ACTIVE'
+                    AND DATEDIFF(lt.tanggal_keluar, CURDATE()) BETWEEN 0 AND 3
+                THEN DATEDIFF(lt.tanggal_keluar, CURDATE())
+                WHEN ss.id = 'ACTIVE'
+                    AND lt.tanggal_keluar < CURDATE()
+                THEN DATEDIFF(CURDATE(), lt.tanggal_keluar)
+                ELSE NULL
+            END AS jumlah_hari
         `
 
         const sqlFrom = `
@@ -97,7 +146,6 @@ export const get = async (req) => {
             LEFT JOIN kab_kota kab ON kab.id = p.id_kab_kota
             LEFT JOIN kecamatan kec ON kec.id = p.id_kecamatan
             LEFT JOIN kelurahan kel ON kel.id = p.id_kelurahan
-
             LEFT JOIN (
                 SELECT s1.id_kamar, s1.tanggal_masuk, s1.id_status_sewa, s1.id_penyewa, s1.id AS id_sewa
                 FROM sewa s1
@@ -114,7 +162,35 @@ export const get = async (req) => {
                 AND s1.tanggal_dibuat = s2.max_tanggal_dibuat
             ) s ON k.id = s.id_kamar
             LEFT JOIN status_sewa ss ON s.id_status_sewa = ss.id
-            LEFT JOIN penyewa py ON py.id = s.id_penyewa
+            LEFT JOIN penyewa py ON py.id = s.id_penyewa AND ss.id IN ('ACTIVE','BOOKED')
+            LEFT JOIN (
+                SELECT
+                    t1.id_sewa,
+                    t1.tanggal_masuk,
+                    t1.tanggal_keluar,
+                    t1.tanggal_tagihan,
+                    d.nama AS nama_durasi,
+                    t1.harga_satuan,
+                    t1.jumlah,
+                    t1.total,
+                    t1.id_status_tagihan,
+                    st.nama as nama_status_tagihan
+                FROM tagihan t1
+                INNER JOIN durasi d
+                    ON d.id = t1.id_durasi
+                INNER JOIN status_tagihan st 
+                    ON st.id = t1.id_status_tagihan
+                INNER JOIN (
+                    SELECT
+                        id_sewa,
+                        MAX(tanggal_tagihan) AS max_tanggal_tagihan
+                    FROM tagihan
+                    GROUP BY id_sewa
+                ) t2
+                    ON t1.id_sewa = t2.id_sewa
+                    AND t1.tanggal_tagihan = t2.max_tanggal_tagihan
+            ) lt
+                ON lt.id_sewa = s.id_sewa AND ss.id IN ('ACTIVE','BOOKED')
         `
 
         const sqlOrder = ' ORDER BY k.id_properti '
@@ -123,9 +199,9 @@ export const get = async (req) => {
         const filters = []
         const replacements = []
 
-        const { 
+        const {
             id_properti,
-            nama, 
+            nama,
             id_status_kamar,
             tipe
         } = req.query
@@ -180,7 +256,26 @@ export const get = async (req) => {
                             id: item.penyewa_id,
                             nama: item.penyewa_nama,
                             noTelp: item.penyewa_no_telp
+                        },
+                        tagihan: item.tanggal_tagihan
+                        ? {
+                            tanggalTagihan: item.tanggal_tagihan,
+                            tanggalMasuk: item.tanggal_masuk,
+                            tanggalKeluar: item.tanggal_keluar,
+                            durasi: item.nama_durasi,
+                            hargaSatuan: item.harga_satuan,
+                            jumlah: item.jumlah,
+                            total: item.total,
+                            status: item.nama_status_tagihan
                         }
+                        : null,
+                        notifikasi: item.jenis_notifikasi
+                        ? {
+                            jenis: item.jenis_notifikasi,
+                            pesan: item.pesan_notifikasi,
+                            jumlahHari: item.jumlah_hari
+                        }
+                        : null
                     }
                     : null,
             hargaPerHari: item.harga_per_hari,
