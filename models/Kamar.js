@@ -74,8 +74,7 @@ const getRentalProgress = (tanggalMasuk, tanggalKeluar) => {
     );
 
     const remainingDays = Math.max(
-        0,
-        Math.round((end - today) / MS_PER_DAY)
+        (end - today) / MS_PER_DAY
     );
 
     const percent = Math.min(
@@ -88,10 +87,10 @@ const getRentalProgress = (tanggalMasuk, tanggalKeluar) => {
 
     let color = "success";
 
-    if (percent >= 90) {
-        color = "danger";
-    } else if (percent >= 70) {
+    if (remainingDays <= 3 && remainingDays >= 0) {
         color = "warning";
+    } else if (remainingDays < 0) {
+        color = "danger";
     }
 
     return {
