@@ -46,6 +46,63 @@ export const kamar = database.define('kamar', {
     }
 })
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+const stripTime = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+};
+
+const getRentalProgress = (tanggalMasuk, tanggalKeluar) => {
+    if (!tanggalMasuk || !tanggalKeluar) {
+        return null;
+    }
+
+    const start = stripTime(tanggalMasuk);
+    const end = stripTime(tanggalKeluar);
+    const today = stripTime(new Date());
+
+    const totalDays = Math.max(
+        1,
+        Math.round((end - start) / MS_PER_DAY)
+    );
+
+    const elapsedDays = Math.max(
+        0,
+        Math.round((today - start) / MS_PER_DAY)
+    );
+
+    const remainingDays = Math.max(
+        0,
+        Math.round((end - today) / MS_PER_DAY)
+    );
+
+    const percent = Math.min(
+        100,
+        Math.max(
+            0,
+            Math.round((elapsedDays / totalDays) * 100)
+        )
+    );
+
+    let color = "success";
+
+    if (percent >= 90) {
+        color = "danger";
+    } else if (percent >= 70) {
+        color = "warning";
+    }
+
+    return {
+        totalDays,
+        elapsedDays,
+        remainingDays,
+        percent,
+        color
+    };
+};
+
 export const get = async (req) => {
     try {
         const page = parseInt(req.query.page) || 1
@@ -121,7 +178,7 @@ export const get = async (req) => {
                 WHEN ss.id = 'ACTIVE'
                     AND lt.tanggal_keluar < CURDATE()
                 THEN CONCAT(
-                    'Terlambat ',
+                    'Pembayaran Terlambat ',
                     DATEDIFF(CURDATE(), lt.tanggal_keluar),
                     ' hari'
                 )
@@ -238,74 +295,100 @@ export const get = async (req) => {
             replacements: [...replacements, limit, offset]
         })
 
-        const formattedData = rows.map(item => ({
-            id: item.id,
-            nama: item.nama,
-            catatan: item.catatan,
-            statusKamar: {
-                id: item.id_status_kamar,
-                nama: item.status_kamar_nama
-            },
-            statusSewa: item.status_sewa_terbaru,
-            bisaDisewakan: item.bisa_disewakan,
-            sewa:
-                item.penyewa_id
+        const formattedData = rows.map(item => {
+            const rentalProgress =
+                item.tanggal_masuk && item.tanggal_keluar
+                    ? getRentalProgress(
+                        item.tanggal_masuk,
+                        item.tanggal_keluar
+                    )
+                    : null;
+
+            return {
+                id: item.id,
+                nama: item.nama,
+                catatan: item.catatan,
+
+                statusKamar: {
+                    id: item.id_status_kamar,
+                    nama: item.status_kamar_nama
+                },
+
+                statusSewa: item.status_sewa_terbaru,
+
+                bisaDisewakan: item.bisa_disewakan,
+
+                sewa: item.penyewa_id
                     ? {
                         id: item.id_sewa,
+
                         penyewa: {
                             id: item.penyewa_id,
                             nama: item.penyewa_nama,
                             noTelp: item.penyewa_no_telp
                         },
+
                         tagihan: item.tanggal_tagihan
-                        ? {
-                            tanggalTagihan: item.tanggal_tagihan,
-                            tanggalMasuk: item.tanggal_masuk,
-                            tanggalKeluar: item.tanggal_keluar,
-                            durasi: item.nama_durasi,
-                            hargaSatuan: item.harga_satuan,
-                            jumlah: item.jumlah,
-                            total: item.total,
-                            status: item.nama_status_tagihan
-                        }
-                        : null,
+                            ? {
+                                tanggalTagihan: item.tanggal_tagihan,
+                                tanggalMasuk: item.tanggal_masuk,
+                                tanggalKeluar: item.tanggal_keluar,
+                                durasi: item.nama_durasi,
+                                hargaSatuan: item.harga_satuan,
+                                jumlah: item.jumlah,
+                                total: item.total,
+                                status: item.nama_status_tagihan,
+
+                                // Progress masa sewa
+                                progress: rentalProgress
+                            }
+                            : null,
+
                         notifikasi: item.jenis_notifikasi
-                        ? {
-                            jenis: item.jenis_notifikasi,
-                            pesan: item.pesan_notifikasi,
-                            jumlahHari: item.jumlah_hari
-                        }
-                        : null
+                            ? {
+                                jenis: item.jenis_notifikasi,
+                                pesan: item.pesan_notifikasi,
+                                jumlahHari: item.jumlah_hari
+                            }
+                            : null
                     }
                     : null,
-            hargaPerHari: item.harga_per_hari,
-            hargaPerMinggu: item.harga_per_minggu,
-            hargaPerBulan: item.harga_per_bulan,
-            hargaPerTahun: item.harga_per_tahun,
-            properti: {
-                id: item.id_properti,
-                nama: item.properti_nama,
-                noTelp: item.no_telp,
-                alamat: item.alamat,
-                catatan: item.properti_catatan,
-                provinsi: {
-                    id: item.id_provinsi,
-                    nama: item.provinsi_nama
-                },
-                kabKota: {
-                    id: item.id_kab_kota,
-                    nama: item.kab_kota_nama
-                },
-                kecamatan: {
-                    id: item.id_kecamatan,
-                    nama: item.kecamatan_nama
-                },
-                kelurahan: {
-                    id: item.id_kelurahan,
-                    nama: item.kelurahan_nama
+
+                hargaPerHari: item.harga_per_hari,
+                hargaPerMinggu: item.harga_per_minggu,
+                hargaPerBulan: item.harga_per_bulan,
+                hargaPerTahun: item.harga_per_tahun,
+
+                properti: {
+                    id: item.id_properti,
+                    nama: item.properti_nama,
+                    noTelp: item.no_telp,
+                    alamat: item.alamat,
+                    catatan: item.properti_catatan,
+
+                    provinsi: {
+                        id: item.id_provinsi,
+                        nama: item.provinsi_nama
+                    },
+
+                    kabKota: {
+                        id: item.id_kab_kota,
+                        nama: item.kab_kota_nama
+                    },
+
+                    kecamatan: {
+                        id: item.id_kecamatan,
+                        nama: item.kecamatan_nama
+                    },
+
+                    kelurahan: {
+                        id: item.id_kelurahan,
+                        nama: item.kelurahan_nama
+                    }
                 }
-            },
-        }))
+            };
+
+        });
 
         // ======================
         // QUERY COUNT
