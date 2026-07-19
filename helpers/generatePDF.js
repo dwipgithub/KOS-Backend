@@ -1538,6 +1538,258 @@ const formatMasukKeluarCell = (value) => {
     return formatCurrency(num)
 }
 
+export const generatePdfKwitansi = async (payment) => {
+    try {
+        console.log('Starting Puppeteer for Kwitansi PDF...')
+        const htmlContent = generateKwitansiHTML(payment)
+        return await renderPdfFromHtml(htmlContent, 'Kwitansi PDF')
+    } catch (error) {
+        console.error('Error in generatePdfKwitansi:', error.message)
+        console.error('Error stack:', error.stack)
+        throw error
+    }
+}
+
+const generateKwitansiHTML = (payment = {}) => {
+    const currentDate = new Date().toLocaleDateString('id-ID')
+    const tanggalBayar = payment.tanggalBayar ? new Date(payment.tanggalBayar).toLocaleDateString('id-ID') : '-'
+    const tanggalTagihan = payment.tanggalTagihan ? new Date(payment.tanggalTagihan).toLocaleDateString('id-ID') : '-'
+    const tanggalMasuk = payment.sewaTanggalMasuk ? new Date(payment.sewaTanggalMasuk).toLocaleDateString('id-ID') : '-'
+    const tanggalKeluar = payment.sewaTanggalKeluar ? new Date(payment.sewaTanggalKeluar).toLocaleDateString('id-ID') : '-'
+    const totalBayar = parseFloat(payment.totalBayar || 0)
+    const totalTagihan = parseFloat(payment.totalTagihan || 0)
+    const periodeSewa = payment.sewaTanggalMasuk && payment.sewaTanggalKeluar ? `${tanggalMasuk} - ${tanggalKeluar}` : ''
+    const rincianItem = `${payment.deskripsiTagihanNama || 'Pembayaran Tagihan'}${periodeSewa ? ` ${periodeSewa}` : ''}`
+
+    return `
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Kwitansi Pembayaran</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    color: #212121;
+                    font-size: 12px;
+                    line-height: 1.4;
+                }
+                .container {
+                    width: 100%;
+                    padding: 20px;
+                }
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 18px;
+                    padding-bottom: 12px;
+                }
+                .header-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                }
+                .logo {
+                    width: 90px;
+                    height: auto;
+                    object-fit: contain;
+                }
+                .header-info {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    gap: 4px;
+                }
+                .header-left h1 {
+                    font-size: 20px;
+                    color: #0f172a;
+                    margin-bottom: 0;
+                }
+                .header-left p,
+                .header-info p {
+                    font-size: 11px;
+                    color: #475569;
+                    margin: 0;
+                }
+                .badge {
+                    display: inline-block;
+                    padding: 6px 10px;
+                    border-radius: 999px;
+                    background: #aa7fbb;
+                    color: white;
+                    font-size: 11px;
+                    font-weight: 700;
+                }
+                .section {
+                    margin-bottom: 18px;
+                }
+                .section-title {
+                    font-size: 13px;
+                    color: #0f172a;
+                    margin-bottom: 8px;
+                    font-weight: 700;
+                }
+                .info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 10px;
+                }
+                .info-card {
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 10px;
+                }
+                .info-card p {
+                    margin-bottom: 6px;
+                    font-size: 11px;
+                    color: #334155;
+                }
+                .info-card .label {
+                    font-weight: 700;
+                    color: #0f172a;
+                    margin-bottom: 4px;
+                    display: block;
+                    font-size: 11px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    border: 1px solid #cbd5e1;
+                    padding: 10px;
+                    text-align: left;
+                    font-size: 11px;
+                }
+                th {
+                    background: #f1f5f9;
+                    color: #0f172a;
+                    font-weight: 700;
+                }
+                .text-right {
+                    text-align: right;
+                }
+                .summary {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 12px;
+                    margin-top: 14px;
+                    margin-bottom: 14px;
+                }
+                .summary-item {
+                    flex: 1;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 10px;
+                    background: #f8fafc;
+                }
+                .summary-item .value {
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #0f172a;
+                }
+                .footer {
+                    margin-top: 26px;
+                    font-size: 10px;
+                    color: #475569;
+                    border-top: 1px solid #cbd5e1;
+                    padding-top: 12px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="header-left">
+                        <img src="${logoSrc}" alt="Logo" class="logo" />
+                        <div class="header-info">
+                            <h1>Kwitansi Pembayaran</h1>
+                            <p>${payment.propertiNama || '-'}</p>
+                            <p>${payment.propertiAlamat || '-'}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge">No. ${payment.idPembayaran || '-'}</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Informasi Pembayaran</div>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <span class="label">Tanggal Pembayaran</span>
+                            <p>${tanggalBayar}</p>
+                            <span class="label">Metode Bayar</span>
+                            <p>${payment.metodeBayarNama || '-'}</p>
+                            <span class="label">Status Pembayaran</span>
+                            <p>${payment.statusTagihanNama || 'Lunas'}</p>
+                        </div>
+                        <div class="info-card">
+                            <span class="label">Nomor Tagihan</span>
+                            <p>${payment.idTagihan || '-'}</p>
+                            <span class="label">Tanggal Tagihan</span>
+                            <p>${tanggalTagihan}</p>
+                            ${!periodeSewa ? `
+                            <span class="label">Tanggal Masuk</span>
+                            <p>${tanggalMasuk}</p>
+                            <span class="label">Tanggal Keluar</span>
+                            <p>${tanggalKeluar}</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Rincian</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th class="text-right">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${rincianItem}</td>
+                                <td class="text-right">${formatCurrency(totalBayar)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="summary">
+                    <div class="summary-item">
+                        <div class="label">Total Tagihan</div>
+                        <div class="value">${formatCurrency(totalTagihan)}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="label">Dibayar</div>
+                        <div class="value">${formatCurrency(totalBayar)}</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Diterima Dari</div>
+                    <div class="info-card">
+                        <p><strong>${payment.penyewaNama || '-'}</strong></p>
+                        <p>Kamar: ${payment.kamarNama || '-'}</p>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <p>Dicetak pada: ${currentDate}</p>
+                    <p>Dokumen ini dibuat oleh sistem Manajemen Kos.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `
+}
+
 const buildPeriodeText = (filters = {}) => {
     if (filters.startDate && filters.endDate) {
         return `${new Date(filters.startDate).toLocaleDateString('id-ID')} - ${new Date(filters.endDate).toLocaleDateString('id-ID')}`

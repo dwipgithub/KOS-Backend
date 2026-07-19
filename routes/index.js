@@ -23,6 +23,7 @@ import * as Penyewa from '../controllers/PenyewaController.js'
 import * as Sewa from '../controllers/SewaController.js'
 import * as Tagihan from '../controllers/TagihanController.js'
 import * as Pembayaran from '../controllers/PembayaranController.js'
+import * as Kwitansi from '../controllers/KwitansiController.js'
 import * as Pengeluaran from '../controllers/PengeluaranController.js'
 import * as Kas from '../controllers/KasController.js'
 import * as MutasiKasOperasional from '../controllers/MutasiKasOperasionalController.js'
@@ -178,6 +179,7 @@ router.delete('/tagihan/:id', allowAll, Tagihan.destroyTagihan)
 // ======================
 router.get('/pembayaran', allowAll, Pembayaran.getPembayaran)
 router.get('/pembayaran/:id', allowAll, Pembayaran.showPembayaran)
+router.get('/pembayaran/:id/kwitansi', Kwitansi.downloadKwitansi)
 router.post('/pembayaran', allowAll, pembayaranBuktiUpload, Pembayaran.createPembayaran)
 
 // ======================
