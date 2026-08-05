@@ -51,6 +51,7 @@ export const exportPdfMutasiKasOperasional = async (req, res) => {
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
             idKas: Joi.string().optional(),
+            penggunaId: Joi.number().integer().optional(),
         })
 
         const { error } = schema.validate(req.query)
@@ -70,6 +71,7 @@ export const exportPdfMutasiKasOperasional = async (req, res) => {
             startDate: req.query.startDate,
             endDate: req.query.endDate,
             idKas: req.query.idKas,
+            penggunaId: req.query.penggunaId,
         }
 
         const pdfBuffer = await generatePdfMutasiKasOperasional(results, filters)
