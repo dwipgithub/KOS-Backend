@@ -1554,12 +1554,13 @@ const generateKwitansiHTML = (payment = {}) => {
     const currentDate = new Date().toLocaleDateString('id-ID')
     const tanggalBayar = payment.tanggalBayar ? new Date(payment.tanggalBayar).toLocaleDateString('id-ID') : '-'
     const tanggalTagihan = payment.tanggalTagihan ? new Date(payment.tanggalTagihan).toLocaleDateString('id-ID') : '-'
-    const tanggalMasuk = payment.sewaTanggalMasuk ? new Date(payment.sewaTanggalMasuk).toLocaleDateString('id-ID') : '-'
-    const tanggalKeluar = payment.sewaTanggalKeluar ? new Date(payment.sewaTanggalKeluar).toLocaleDateString('id-ID') : '-'
+    const tanggalMasuk = payment.tagihanTanggalMasuk ? new Date(payment.tagihanTanggalMasuk).toLocaleDateString('id-ID') : '-'
+    const tanggalKeluar = payment.tagihanTanggalKeluar ? new Date(payment.tagihanTanggalKeluar).toLocaleDateString('id-ID') : '-'
     const totalBayar = parseFloat(payment.totalBayar || 0)
     const totalTagihan = parseFloat(payment.totalTagihan || 0)
-    const periodeSewa = payment.sewaTanggalMasuk && payment.sewaTanggalKeluar ? `${tanggalMasuk} - ${tanggalKeluar}` : ''
-    const rincianItem = `${payment.deskripsiTagihanNama || 'Pembayaran Tagihan'}${periodeSewa ? ` ${periodeSewa}` : ''}`
+    const isBiayaKamar = ['RENT', 'BIAYA_KAMAR', 'BIAYA KAMAR'].includes(String(payment.idDeskripsiTagihan || '').toUpperCase()) || /biaya\s*kamar/i.test(String(payment.deskripsiTagihanNama || ''))
+    const periodeSewa = isBiayaKamar && payment.tagihanTanggalMasuk && payment.tagihanTanggalKeluar ? `${tanggalMasuk} - ${tanggalKeluar}` : ''
+    const rincianItem = isBiayaKamar && periodeSewa ? `${payment.deskripsiTagihanNama || 'Pembayaran Tagihan'} ${periodeSewa}` : (payment.deskripsiTagihanNama || 'Pembayaran Tagihan')
 
     return `
         <!DOCTYPE html>
@@ -1733,12 +1734,6 @@ const generateKwitansiHTML = (payment = {}) => {
                             <p>${payment.idTagihan || '-'}</p>
                             <span class="label">Tanggal Tagihan</span>
                             <p>${tanggalTagihan}</p>
-                            ${!periodeSewa ? `
-                            <span class="label">Tanggal Masuk</span>
-                            <p>${tanggalMasuk}</p>
-                            <span class="label">Tanggal Keluar</span>
-                            <p>${tanggalKeluar}</p>
-                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -1829,16 +1824,14 @@ const generateMutasiKasOperasionalHTML = (data, filters = {}) => {
         <tr>
             <td style="border: 1px solid #ddd; padding: 8px;">${item.tanggalMutasiKas ? new Date(item.tanggalMutasiKas).toLocaleDateString('id-ID') : '-'}</td>
             <td style="border: 1px solid #ddd; padding: 8px;">${item.keterangan || '-'}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">${item.properti?.nama || '-'}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: right;" class="masuk">${formatMasukKeluarCell(item.masuk)}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: right;" class="keluar">${formatMasukKeluarCell(item.keluar)}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-weight: 600;">${formatCurrency(item.saldo || 0)}</td>
         </tr>
     `).join('')
-        : `<tr><td colspan="6" style="border: 1px solid #ddd; padding: 12px; text-align: center; color: #6b7280;">Tidak ada mutasi pada periode ini.</td></tr>`
+        : `<tr><td colspan="5" style="border: 1px solid #ddd; padding: 12px; text-align: center; color: #6b7280;">Tidak ada mutasi pada periode ini.</td></tr>`
 
     const filterText = buildPeriodeText(filters)
-    const kasLabel = filters.idKas || rows[0]?.idKas || 'KAS-1'
 
     return `
         <!DOCTYPE html>
@@ -1855,24 +1848,6 @@ const generateMutasiKasOperasionalHTML = (data, filters = {}) => {
                     line-height: 1.4;
                     color: #333;
                 }
-                .header {
-                    display: flex;
-                    align-items: center;
-                    border-bottom: 3px solid #2c3e50;
-                    padding-bottom: 8px;
-                    margin-bottom: 10px;
-                    gap: 10px;
-                }
-                .logo { width: 90px; height: auto; object-fit: contain; }
-                .header-center h1 {
-                    font-size: 18px;
-                    color: #2c3e50;
-                    margin-bottom: 4px;
-                }
-                .header-center p {
-                    font-size: 10px;
-                    color: #666;
-                }
                 .report-title {
                     text-align: center;
                     margin: 12px 0;
@@ -1887,7 +1862,12 @@ const generateMutasiKasOperasionalHTML = (data, filters = {}) => {
                     color: #666;
                 }
                 .periode-text {
-                    margin-bottom: 10px;
+                    margin-bottom: 8px;
+                    font-size: 11px;
+                    color: #555;
+                }
+                .pengguna-text {
+                    margin-bottom: 14px;
                     font-size: 11px;
                     color: #555;
                 }
@@ -1922,6 +1902,11 @@ const generateMutasiKasOperasionalHTML = (data, filters = {}) => {
                     border-collapse: collapse;
                     margin-bottom: 12px;
                 }
+                colgroup col:nth-child(4),
+                colgroup col:nth-child(5),
+                colgroup col:nth-child(6) {
+                    width: 120px;
+                }
                 thead {
                     background-color: #f1f5f9;
                     color: #334155;
@@ -1949,20 +1934,13 @@ const generateMutasiKasOperasionalHTML = (data, filters = {}) => {
         </head>
         <body>
             <div class="container">
-                <div class="header">
-                    <img src="${logoSrc}" alt="Logo" class="logo" />
-                    <div class="header-center">
-                        <h1>Manajemen Kos</h1>
-                        <p>Kas Operasional: ${kasLabel}</p>
-                    </div>
-                </div>
-
                 <div class="report-title">
                     <h1>LAPORAN MUTASI KAS OPERASIONAL</h1>
                     <p>Tanggal Cetak: ${currentDate}</p>
                 </div>
 
                 <p class="periode-text">Periode: ${filterText}</p>
+                ${filters.penggunaNama ? `<p class="pengguna-text">Pengguna: ${filters.penggunaNama}</p>` : ''}
 
                 <div class="summary-cards">
                     <div class="summary-card">
@@ -1984,11 +1962,17 @@ const generateMutasiKasOperasionalHTML = (data, filters = {}) => {
                 </div>
 
                 <table>
+                    <colgroup>
+                        <col />
+                        <col />
+                        <col />
+                        <col />
+                        <col />
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>Tanggal</th>
                             <th>Keterangan</th>
-                            <th>Nama Properti</th>
                             <th>Masuk</th>
                             <th>Keluar</th>
                             <th>Saldo</th>

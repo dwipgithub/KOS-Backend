@@ -35,8 +35,8 @@ export const downloadKwitansi = async (req, res) => {
                 st.nama AS statusTagihanNama,
 
                 s.id AS idSewa,
-                s.tanggal_masuk AS sewaTanggalMasuk,
-                s.tanggal_keluar AS sewaTanggalKeluar,
+                t.tanggal_masuk AS tagihanTanggalMasuk,
+                t.tanggal_keluar AS tagihanTanggalKeluar,
 
                 k.id AS idKamar,
                 k.nama AS kamarNama,

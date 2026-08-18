@@ -423,7 +423,7 @@ export const destroy = async (id) => {
             SELECT id_sewa
             FROM tagihan
             WHERE id = ?
-              AND tanggal_dihapus IS NULL
+                AND tanggal_dihapus IS NULL
         `, {
             type: QueryTypes.SELECT,
             replacements: [id]

@@ -241,10 +241,12 @@ export const get = async (req) => {
                         id_sewa,
                         MAX(tanggal_dibuat) AS max_tanggal_dibuat
                     FROM tagihan
+                    WHERE id_deskripsi_tagihan = 'RENT'
                     GROUP BY id_sewa
                 ) t2
                     ON t1.id_sewa = t2.id_sewa
                     AND t1.tanggal_dibuat = t2.max_tanggal_dibuat
+                    AND t1.id_deskripsi_tagihan = 'RENT'
             ) lt
                 ON lt.id_sewa = s.id_sewa AND ss.id IN ('ACTIVE','BOOKED')
         `

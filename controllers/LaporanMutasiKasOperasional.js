@@ -1,4 +1,5 @@
 import { get } from '../models/LaporanMutasiKasOperasional.js'
+import { show as showPengguna } from '../models/Pengguna.js'
 import Joi from 'joi';
 import paginationDB from '../config/PaginationDB.js'
 import * as response from '../helpers/response.js'
@@ -72,6 +73,17 @@ export const exportPdfMutasiKasOperasional = async (req, res) => {
             endDate: req.query.endDate,
             idKas: req.query.idKas,
             penggunaId: req.query.penggunaId,
+        }
+
+        if (req.query.penggunaId) {
+            try {
+                const penggunaData = await showPengguna(req.query.penggunaId)
+                if (penggunaData) {
+                    filters.penggunaNama = penggunaData.nama
+                }
+            } catch (error) {
+                console.warn('Could not fetch pengguna name for PDF:', error.message)
+            }
         }
 
         const pdfBuffer = await generatePdfMutasiKasOperasional(results, filters)
