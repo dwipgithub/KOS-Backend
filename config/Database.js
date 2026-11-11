@@ -15,7 +15,7 @@ export const database = new Sequelize(process.env.DB_DATABASE, process.env.DB_US
 	connectTimeout: 60000
     },
     timezone: '+07:00', //for writing to database
-    logging: true,
+    logging: false,
     pool: {
         max: 10,
         min: 0,
